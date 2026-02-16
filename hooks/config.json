@@ -1,0 +1,21 @@
+{
+  "skill-suggester": {
+    "maxSuggestions": 3,
+    "confidenceThreshold": 0.3,
+    "autoLoadTopSkills": true
+  },
+  "mode-tracker": {
+    "planningThreshold": 0.6,
+    "implementationThreshold": 0.6,
+    "maxViolations": 3
+  },
+  "verification-gate": {
+    "completionThreshold": 0.75,
+    "evidenceRequired": true
+  },
+  "session-tracker": {
+    "enableLogging": true,
+    "maxLogFileSize": 10485760,
+    "maxLogFiles": 5
+  }
+}
