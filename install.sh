@@ -231,6 +231,44 @@ EOF
     fi
 }
 
+# Setup Python virtual environment for opsis-plan
+setup_venv() {
+    print_header "Setting up Python Virtual Environment"
+    
+    local venv_dir="${AIDERDESK_SKILLS_DIR}/opsis-plan/venv"
+    local requirements_file="${AIDERDESK_SKILLS_DIR}/opsis-plan/scripts/requirements.txt"
+    
+    # Check if Python 3 is available
+    if ! command -v python3 &> /dev/null; then
+        print_error "Python 3 is not installed"
+        print_info "Please install Python 3.8 or higher"
+        exit 1
+    fi
+    print_success "Python 3 found: $(python3 --version)"
+    
+    # Create venv if it doesn't exist
+    if [ ! -d "$venv_dir" ]; then
+        print_info "Creating virtual environment at $venv_dir"
+        python3 -m venv "$venv_dir"
+        print_success "Virtual environment created"
+    else
+        print_success "Virtual environment already exists"
+    fi
+    
+    # Install requirements
+    if [ -f "$requirements_file" ]; then
+        print_info "Installing Python dependencies from requirements.txt"
+        "$venv_dir/bin/pip" install --quiet --upgrade pip
+        "$venv_dir/bin/pip" install --quiet -r "$requirements_file"
+        print_success "Python dependencies installed"
+    else
+        print_warning "requirements.txt not found, skipping dependency installation"
+    fi
+    
+    print_info "Virtual environment location: $venv_dir"
+    print_info "Activate with: source $venv_dir/bin/activate"
+}
+
 # Verify installation
 verify_installation() {
     print_header "Verifying Installation"
@@ -289,6 +327,10 @@ print_summary() {
         echo "  3. Read individual skill documentation in skills/*/SKILL.md"
         echo "  4. Review ARCHITECTURE.md for system design"
         echo ""
+        print_info "Python Environment:"
+        echo "  - Virtual environment: ${AIDERDESK_SKILLS_DIR}/opsis-plan/venv"
+        echo "  - Activate with: source ${AIDERDESK_SKILLS_DIR}/opsis-plan/venv/bin/activate"
+        echo ""
         print_info "For troubleshooting, see INSTALL.md"
     else
         print_error "Installation completed with errors"
@@ -331,6 +373,7 @@ main() {
     install_skills
     install_hooks
     create_directories
+    setup_venv
     
     # Skip config if requested
     if [ "${1:-}" != "--skip-config" ]; then

@@ -115,18 +115,13 @@ Implementation: [AUTHORIZED|BLOCKED] - [additional context]
 
 **If any indicator is detected → Execute compact recovery BEFORE declaring mode:**
 
-1. Re-activate `using-opsis` skill
-2. Scan `.aider-desk/opsis/outputs/` for active projects
-3. Determine mode based on artifact state:
-   - Tasks incomplete + PRD exists → Implementation Mode
-   - PRD incomplete → Planning Mode
-   - Tasks complete but not archived → Verification Mode
-4. Inform user: "Detected compact - restored opsis state: [mode], [X/Y tasks remaining]"
-5. Then proceed with standard mode declaration
+1. Activate opsis-compact-recovery skill (dedicated recovery skill)
+2. Wait for recovery to complete state restoration
+3. Then proceed with standard mode declaration
 
 **If no compact indicators → Proceed with standard mode declaration**
 
-See `using-opsis` skill for detailed compact recovery protocol.
+See `opsis-compact-recovery` skill for detailed recovery protocol.
 
 **Example - Planning Mode:**
 ```markdown

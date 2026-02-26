@@ -8,17 +8,16 @@ license: Apache-2.0
 
 Meta-skill establishing workflow rules, Iron Laws, and skill invocation order.
 
-## 🚨 Critical: Decision Point Gate Required
+## Workflow Routing
 
-**Before taking ANY implementation action after reading tasks.md, you MUST complete the Decision Point Gate template below.**
+**Workflow routing is handled by opsis-implement.** This meta-skill sets up context and hands off to execution.
 
-This is not optional. The Decision Point Gate ensures you:
-1. Choose the correct workflow (opsis-implement vs opsis-two-stage-review-execution vs others)
-2. Declare the correct mode matching your chosen workflow
-3. Invoke the appropriate skill before starting implementation
-4. DO NOT skip directly to implementation without workflow guidance
+**Decision Point Gate is optional:**
+- Use as an override mechanism for edge cases where auto-routing would be wrong
+- Examples: "10+ simple copy/paste tasks" → direct implementation, "3 tightly coupled complex tasks" → two-stage review
+- If not completed, opsis-implement will apply auto-routing rules
 
-**See "Decision Point Gate" section below for the required template.**
+**See "Decision Point Gate" section below for the template.**
 
 ---
 
@@ -32,8 +31,8 @@ This is not optional. The Decision Point Gate ensures you:
 - Specialized workflows (PRD, implementation, verification) → Invoke appropriate skill
 
 **For detailed delegation rules, see:**
-- **opsis-coordinator** - Complete decision tree and complexity assessment
-- **opsis-mode-enforcer** - Mode-specific delegation permissions
+- **opsis-coordinator** - Complete decision tree, complexity assessment, and delegation framework
+- **opsis-mode-enforcer** - Mode-specific delegation permissions and boundaries
 
 ---
 
@@ -63,7 +62,17 @@ Respond (including clarifications)
 
 ---
 
-## After Activating This Skill
+## 🚨 State Uncertainty Check
+
+**If you're unsure about state (truncated conversation, partial memory, unclear context):**
+
+```
+STOP → Activate opsis-compact-recovery → Then proceed
+```
+
+**Using-opsis cannot safely operate without established state.**
+
+---
 
 **When you activate `using-opsis`, your next action sequence is:**
 
@@ -71,22 +80,21 @@ Respond (including clarifications)
 1. Check for in-progress work: todo---get_items
 2. If continuing work:
    ├─→ Read tasks.md to understand current position
-   ├─→ Complete Decision Point Gate (see below)
-   └─→ Invoke chosen skill IMMEDIATELY
+   └─→ Invoke opsis-implement (handles routing)
 3. If starting new work:
    ├─→ Determine appropriate skill based on task type
-   ├─→ Complete Decision Point Gate if implementation work
+   │   - Planning needs → opsis-start, opsis-prd, opsis-summarize
+   │   - Implementation needs → opsis-implement
+   │   - Verification needs → opsis-verify, opsis-review
    └─→ Invoke chosen skill IMMEDIATELY
 ```
 
 **🚨 CRITICAL: After activating this skill, DO NOT:**
 - ❌ Start implementing directly without invoking an implementation skill
-- ❌ Read files or use power tools for implementation without completing Decision Point Gate
-- ❌ Skip the decision template and "just get started"
+- ❌ Read files or use power tools for implementation without invoking opsis-implement
 
 **✅ You MUST:**
-- Complete the Decision Point Gate before any implementation action
-- Invoke the chosen skill (opsis-implement, opsis-two-stage-review-execution, etc.)
+- Invoke the appropriate skill (opsis-implement, opsis-start, opsis-prd, etc.)
 - Follow the invoked skill's instructions exactly
 
 ---
@@ -125,53 +133,53 @@ Respond (including clarifications)
 
 ### Auto-Correction Examples
 
-**Example 1: Direct execution without Decision Point Gate**
+**Example 1: Direct execution without invoking implementation skill**
 
 ```
 ❌ WRONG: Agent starts implementing directly
 User: "Proceed with Phase 3"
 Agent: Activates using-opsis
        ↓
-       [Skips Decision Point Gate]
+       [Skips invoking opsis-implement]
        ↓
        power---bash: mkdir -p src/api
        power---file_write: src/api/user.ts
 
 ✅ CORRECTED: Agent detects violation and auto-corrects
-I apologize - I was about to start implementation without completing the Decision Point Gate.
+I apologize - I was about to start implementation without invoking the implementation skill.
 
 Let me follow the correct protocol:
 
 1. Check for in-progress work: todo---get_items
 2. Read tasks.md to understand current position
-3. Complete Decision Point Gate
-4. Invoke chosen skill (opsis-implement or opsis-two-stage-review-execution)
+3. Invoke opsis-implement (handles routing and execution)
 
-[Completes Decision Point Gate]
-[Invokes appropriate skill]
+[Invokes opsis-implement]
 ```
 
-**Example 2: Wrong workflow for large task list**
+**Example 2: Wrong workflow (now handled by opsis-implement)**
 
 ```
-❌ WRONG: Agent uses opsis-implement for 54 tasks
+❌ OLD BEHAVIOR: Agent manually chose wrong workflow
 User: "Proceed with all tasks"
 Agent: Reads tasks.md → 54 tasks
        ↓
-       Activates opsis-implement
+       Manually chose opsis-implement (wrong for 54 tasks)
        ↓
-       Starts implementing directly
+       Started implementing directly
 
-✅ CORRECTED: Agent detects wrong workflow and auto-corrects
-I apologize - I was about to use opsis-implement for 54 tasks.
-
-Let me follow the correct protocol:
-
-Detected: 54 tasks with user scope "all"
-Auto-routing: opsis-two-stage-review-execution (large project requires systematic quality gates)
-
-[Invokes opsis-two-stage-review-execution instead]
+✅ CURRENT BEHAVIOR: opsis-implement handles routing
+User: "Proceed with all tasks"
+Agent: Activates opsis-implement
+       ↓
+       opsis-implement detects 54 tasks
+       ↓
+       Auto-routes to opsis-two-stage-review-execution
+       ↓
+       Execution begins with correct workflow
 ```
+
+**Note:** Routing decisions are now centralized in opsis-implement. using-opsis no longer needs to make workflow choices.
 
 **Example 3: Skipping todo check**
 
@@ -206,12 +214,12 @@ Let me follow the correct protocol:
 
 - [ ] Did I check `todo---get_items` after activating using-opsis?
 - [ ] Did I read tasks.md to understand current position?
-- [ ] Did I complete the Decision Point Gate?
-- [ ] Did I invoke an implementation skill (opsis-implement, opsis-two-stage-review-execution, etc.)?
+- [ ] Did I invoke opsis-implement (handles workflow routing)?
 - [ ] Did I follow the invoked skill's instructions?
-- [ ] Is my workflow choice correct for the task context (task count, user scope)?
 
 **If any answer is NO → STOP and complete the missing step.**
+
+**Note:** Workflow routing (two-stage review vs direct execution) is handled by opsis-implement. Decision Point Gate is optional for edge cases.
 
 ### Detection Pattern
 
@@ -219,11 +227,11 @@ Let me follow the correct protocol:
 
 | Pattern | Problem | Correction |
 |---------|---------|------------|
-| "User said proceed, so I'll start implementing" | Skipping Decision Point Gate | Complete Decision Point Gate first |
-| "I'll just implement this task directly" | Not invoking implementation skill | Invoke opsis-implement or appropriate skill |
-| "Let me read the files to get started" | Starting implementation without workflow | Stop → Complete Decision Point Gate → Invoke skill |
-| "54 tasks, I'll do them one by one" | Wrong workflow for large project | Auto-route to opsis-two-stage-review-execution |
-| "I remember what to do from context" | Not reading tasks.md | Read tasks.md to understand current position |
+| "User said proceed, so I'll start implementing" | Not invoking implementation skill | Invoke opsis-implement first |
+| "I'll just implement this task directly" | Bypassing workflow routing | Invoke opsis-implement (handles routing) |
+| "Let me read the files to get started" | Starting implementation without workflow | Stop → Invoke opsis-implement first |
+| "I need to choose between workflows" | Routing not your responsibility | Invoke opsis-implement (handles routing) |
+| "I remember what to do from context" | Not checking current state | Read tasks.md and check todo list |
 
 **Example Correct Sequence:**
 ```
@@ -231,9 +239,8 @@ Let me follow the correct protocol:
 2. Agent: Activates using-opsis
 3. Agent: Checks todo---get_items → finds Phase 3 Task 2 incomplete
 4. Agent: Reads tasks.md to understand task
-5. Agent: Completes Decision Point Gate → chooses opsis-implement
-6. Agent: Invokes opsis-implement skill
-7. Agent: Follows opsis-implement instructions to complete task
+5. Agent: Invokes opsis-implement
+6. opsis-implement handles routing and executes task
 ```
 
 **Example INCORRECT Sequence (what NOT to do):**
@@ -243,7 +250,7 @@ Let me follow the correct protocol:
 3. Agent: Checks todo---get_items → finds Phase 3 Task 2 incomplete
 4. Agent: Reads tasks.md
 5. ❌ Agent starts reading files and implementing code directly
-6. ❌ Agent never invoked opsis-implement or opsis-two-stage-review-execution
+6. ❌ Agent never invoked opsis-implement
 ```
 
 ---
@@ -441,7 +448,7 @@ These transitions are **FORBIDDEN** and violate the Opsis protocol:
 - ❌ `opsis-two-stage-review-execution` → `opsis-archive` (missing verification)
 
 **Protocol Bypass Violations:**
-- ❌ `using-opsis` → File read/write/edit directly (must complete Decision Point Gate)
+- ❌ `using-opsis` → File read/write/edit directly (must invoke implementation skill)
 - ❌ `using-opsis` → `power---bash` for implementation (must invoke implementation skill)
 
 ### Quick Reference Table
@@ -568,9 +575,10 @@ Transition: INVALID (missing opsis-plan)
 **Implementation Skill Preconditions:**
 - [ ] PRD exists and is complete
 - [ ] tasks.md exists with implementation plan
-- [ ] Decision Point Gate has been completed
 - [ ] Mode declaration is IMPLEMENTATION
 - [ ] Previous skill was planning or implementation (valid transition)
+
+**Note:** Decision Point Gate is optional. opsis-implement handles workflow routing automatically.
 
 **Verification Skill Preconditions:**
 - [ ] All implementation tasks are complete
@@ -729,9 +737,29 @@ opsis-implement
 opsis-verify
 ```
 
-### 🚨 Decision Point Gate (REQUIRED BEFORE ANY IMPLEMENTATION ACTION)
+### 🚨 Decision Point Gate (OPTIONAL OVERRIDE)
 
-**You MUST complete this decision template before taking ANY implementation action.**
+**The Decision Point Gate is an OPTIONAL override mechanism.**
+
+**Purpose:** Override auto-routing for edge cases where the default behavior would be wrong.
+
+**When to use:**
+- 10+ simple copy/paste tasks → override to direct implementation
+- 3 tightly coupled complex tasks → override to two-stage review despite <10
+- Need separate session for human review → override to executing-plans
+- Other edge cases where auto-routing doesn't fit the situation
+
+**When NOT to use:**
+- Typical scenarios where auto-routing applies correctly
+- When you're unsure - let opsis-implement handle routing
+
+**How it works:**
+1. Complete the Decision Point Gate template below
+2. Save to `.aider-desk/opsis/outputs/{project}/` directory
+3. opsis-implement will detect and honor your override
+4. If no Gate exists, opsis-implement applies auto-routing
+
+**You MAY complete this decision template if you need to override auto-routing.**
 
 ```
 ═══════════════════════════════════════════════════════════════════════════════
@@ -765,7 +793,7 @@ DECISION CRITERIA:
 WORKFLOW DECISION:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-CHOSEN WORKFLOW: [ opsis-two-stage-review-execution / opsis-implement / opsis-executing-plans / opsis-dispatching-parallel-agents ]
+CHOSEN WORKFLOW: [ opsis-two-stage-review-execution / opsis-implement / opsis-executing-plans / opsis-dispatching-parallel-agents / opsis-systematic-debugging ]
 
 REASON: [Explain WHY this workflow based on criteria above]
 
@@ -813,7 +841,7 @@ execution                    (or opsis-executing-plans
 | Stay in current session | → opsis-two-stage-review-execution or opsis-implement |
 | Separate session | → opsis-executing-plans |
 
-**Critical Rule:** After activating `using-opsis` and reading tasks.md, you MUST complete the Decision Point Gate and invoke the chosen skill. DO NOT start implementing directly.
+**Critical Rule:** After activating `using-opsis` and reading tasks.md, you MUST invoke opsis-implement (handles routing and execution). DO NOT start implementing directly.
 
 ### Implementation → Verification Chain
 
@@ -1238,46 +1266,6 @@ When you detect in-progress work (TODO shows incomplete tasks, tasks.md exists w
 | Skip mode declaration | Always declare mode matching chosen workflow |
 | Use wrong skill for task type | Use Decision Point Gate to choose correctly |
 | Forget to update TODO | Mark tasks complete as you finish them |
-
----
-
-## Compact Recovery
-
-When conversation history appears truncated or user reports a compact:
-
-**Use opsis-compact-recovery skill for detailed recovery.** This skill provides:
-- Automatic artifact scanning
-- State reconstruction from PRD and tasks.md
-- TODO list restoration
-- Clear user notification
-
-**Quick recovery (if opsis-compact-recovery not available):**
-
-### Detection Indicators
-1. Conversation history appears truncated (sudden start without context)
-2. User mentions compact, reload, or missing context
-3. Opsis artifacts exist with incomplete work:
-   - `.aider-desk/opsis/outputs/*/tasks.md` with unchecked tasks
-   - `.aider-desk/opsis/outputs/*/full-prd.md` or `quick-prd.md`
-
-### Recovery Actions
-1. **Re-activate**: `skills---activate_skill` with `using-opsis`
-2. **Run worktree detection**: Determine if in worktree and identify all search locations (see opsis-worktree-utils)
-3. **Read artifacts**: Scan all detected locations (worktree + project root + other worktrees) for active projects
-4. **Determine mode** based on artifact state:
-   - Tasks incomplete + PRD exists → **Implementation Mode**
-   - PRD incomplete → **Planning Mode**
-   - Tasks complete but not archived → **Verification Mode**
-5. **Inform user**: "Detected compact - restored opsis state: [mode], [X/Y tasks remaining] in [project-name]" (include location: worktree or main project)
-
-### Recovery Verification
-After recovery, verify:
-- Mode declaration is displayed
-- Skill activation confirmed
-- Current position in workflow is clear
-- Next action is specified
-
-**Note**: Compact recovery should be executed BEFORE mode declaration. Use opsis-mode-enforcer's compact detection for automatic triggering.
 
 ---
 

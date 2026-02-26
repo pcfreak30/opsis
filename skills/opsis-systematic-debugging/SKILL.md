@@ -70,7 +70,7 @@ Use for ANY technical issue:
 
 ## Mode Declaration
 
-For complete mode enforcement rules, Iron Laws, and mode boundary enforcement, reference **opsis-mode-declaration**.
+For complete mode enforcement rules, Iron Laws, and mode boundary enforcement, reference **opsis-mode-enforcer**.
 
 **Key modes during debugging:**
 - **Investigation Mode** (Phases 1-3): Read-only analysis, hypothesis formation
@@ -437,7 +437,7 @@ The skill references these supporting techniques:
 
 ## Related Skills
 
-- **opsis-mode-declaration** - For mode enforcement rules and Iron Laws
+- **opsis-mode-enforcer** - For mode enforcement rules and Iron Laws
 - **opsis-verification-gate** - For verification procedures and evidence requirements
 - **opsis-test-driven-development** - For creating failing test case (Phase 4, Step 1)
 - **opsis-verification-before-completion** - Verify fix worked before claiming success

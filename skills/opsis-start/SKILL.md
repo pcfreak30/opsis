@@ -193,7 +193,7 @@ This skill is successful when:
 ### Pattern Skills Used
 
 - **opsis-mode-enforcer** - Mode declaration and enforcement (Planning Mode)
-- **opsis-delegation-checkpoint** - Delegation decisions for codebase analysis (if needed)
+- **opsis-coordinator** - Delegation decisions for codebase analysis (if needed)
 
 ### Related Skills
 

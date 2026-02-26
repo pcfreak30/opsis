@@ -64,7 +64,7 @@ This skill is successful when:
 
 ## Pre-Flight: Delegation Assessment
 
-Reference **opsis-delegation-checkpoint** for complete delegation decision framework.
+Reference **opsis-coordinator** for complete delegation decision framework.
 
 **Before starting requirements gathering, assess delegation requirements:**
 
@@ -264,7 +264,7 @@ This skill is part of the Opsis planning workflow:
 5. **opsis-verify** - Verify implementation against PRD
 
 **Related Skills:**
-- **opsis-delegation-checkpoint** - Delegation decision framework (pre-flight assessment)
+- **opsis-coordinator** - Delegation decision framework (pre-flight assessment)
 - **opsis-mode-enforcer** - Mode declaration and enforcement
 - **opsis-worktree-utils** - Worktree detection and file protocol
 - **opsis-summarize** - Conversation analysis and mini-PRD extraction
