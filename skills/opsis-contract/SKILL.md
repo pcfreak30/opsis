@@ -4,7 +4,7 @@ description: Contract pattern for Opsis skills. Standard preconditions, postcond
 license: Apache-2.0
 ---
 
-# opsis-contract
+# Opsis Contract
 
 Contract pattern for Opsis skills. Provides standard preconditions, postconditions, and success metrics templates.
 
@@ -14,6 +14,10 @@ Contract pattern for Opsis skills. Provides standard preconditions, postconditio
 - Creating a new Opsis skill
 - Adding preconditions/postconditions to existing skills
 - Defining success criteria for a skill
+
+**Need examples?** See `opsis-contract-examples` for comprehensive examples and edge cases.
+
+---
 
 ## Standard Preconditions
 
@@ -40,6 +44,8 @@ When preconditions fail:
 └─ Status: HALTED
 ```
 
+---
+
 ## Standard Postconditions
 
 **Every skill MUST include:**
@@ -48,64 +54,82 @@ When preconditions fail:
 |----------|-------|---------|
 | Artifacts | Files created | `tasks.md` with N tasks |
 | Content | Quality verified | All tasks have descriptions |
-| TODO | State updated | Task marked complete via `todo---update_item_completion` |
-| Next | Action clear | "Proceed with Task 2" |
+| TODO | State updated | Current task marked complete |
 
 ### Verification Steps
 
-Before claiming completion:
-
-1. **Verify artifacts** - Use `power---file_read`, `power---glob`
-2. **Verify content** - Run tests, check structure
-3. **Verify TODO** - Use `todo---get_items`
-4. **Display results** - Show evidence to user
-
-### Completion Template
+After completing a skill:
 
 ```
 ✅ POSTCONDITIONS VERIFIED
-├─ Artifacts: [list created]
-├─ Content: [what checked + result]
-├─ TODO: [current state]
-├─ Next: [next action]
-└─ Evidence: [verification output]
+├─ Artifacts Created: [list]
+├─ Content Verified: [what was checked]
+├─ TODO Updated: [state]
+├─ Next Action: [recommended step]
+└─ Evidence: [verification results]
 ```
+
+---
 
 ## Standard Success Metrics
 
-**Every skill MUST define:**
+**Every skill MUST include:**
 
-1. **Completion** - When is skill done? (e.g., "All tasks checked")
-2. **Quality** - What defines quality? (e.g., "All tests pass")
-3. **Satisfaction** - How to know user satisfied? (e.g., "No corrections requested")
-4. **Integrity** - Was workflow followed? (e.g., "No protocol violations")
+| Metric Type | Example |
+|-------------|---------|
+| Artifact quality | PRD has all required sections |
+| Task completion | All tasks in tasks.md marked complete |
+| Verification | Tests pass (0 failures) |
+| User satisfaction | No corrections requested |
 
-## Integration
+---
 
-All Opsis skills reference this contract pattern:
-- `opsis-prd` - Preconditions: none; Postconditions: PRD created
-- `opsis-plan` - Preconditions: PRD exists; Postconditions: tasks.md created
-- `opsis-implement` - Preconditions: tasks.md exists; Postconditions: code implemented
-- `opsis-verify` - Preconditions: implementation complete; Postconditions: verification report
-
-## Need More Detail?
-
-**Invoke `opsis-contract-examples` for:**
-- Extensive precondition/postcondition templates
-- Failure handling examples
-- Verification step patterns
-- Success metrics examples
-
-## Quick Template
+## Skill Contract Template
 
 ```markdown
 ## Preconditions
-- [ ] [artifact/tool/step/todo] - [specific requirement]
+- [ ] [Artifact check]
+- [ ] [Tool check]
+- [ ] [Step completion check]
+- [ ] [TODO state check]
 
 ## Postconditions
-- [ ] [artifact] - [created/verified]
-- [ ] [TODO] - [updated]
+- [ ] [Artifact creation verified]
+- [ ] [Content quality verified]
+- [ ] [TODO state updated]
 
 ## Success Metrics
-- [ ] [criterion] - [how measured]
+- [ ] [Measurable outcome 1]
+- [ ] [Measurable outcome 2]
+- [ ] [Measurable outcome 3]
 ```
+
+---
+
+## Integration with Opsis Skills
+
+All Opsis skills use this contract pattern:
+
+**Planning Skills:**
+- `opsis-prd` - Preconditions: user intent identified; Postconditions: PRD created
+- `opsis-plan` - Preconditions: PRD exists; Postconditions: tasks.md created
+- `opsis-start` - Preconditions: vague idea; Postconditions: requirements gathered
+
+**Implementation Skills:**
+- `opsis-implement` - Preconditions: tasks.md exists; Postconditions: tasks complete, code committed
+- `opsis-two-stage-review-execution` - Preconditions: tasks.md exists; Postconditions: all tasks complete
+
+**Verification Skills:**
+- `opsis-verify` - Preconditions: implementation complete; Postconditions: verification report generated
+- `opsis-review` - Preconditions: code changes exist; Postconditions: review comments generated
+
+---
+
+## Need More Detail?
+
+**For comprehensive examples and edge cases, see `opsis-contract-examples`:**
+- Detailed precondition examples (artifacts, tools, steps, TODO)
+- Precondition failure templates with specific examples
+- Postcondition verification examples with evidence
+- Success metrics for different skill types
+- Integration checklist for skill authors

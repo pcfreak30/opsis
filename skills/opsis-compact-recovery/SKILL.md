@@ -13,8 +13,33 @@ Restore Opsis workflow state after conversation compacts or context loss.
 Use this skill when:
 - Conversation history appears truncated or starts abruptly
 - User reports "compact", "context lost", or "missing state"
+- User says "continue", "resume", "reload", "recover", or similar continuation commands
 - User says "reload opsis protocol" or "reload the opsis protocol"
 - Opsis artifacts exist but agent doesn't know current position
+- You have partial skill memory but are unsure about full state
+- Short prompts without clear context (suspicious of compact)
+
+## 🚨 Conservative Behavior Rules
+
+**When in doubt about state, ALWAYS recover first:**
+
+| Situation | Action | Rationale |
+|-----------|--------|-----------|
+| Unsure about mode | Activate opsis-compact-recovery | Better to recover unnecessarily than operate with wrong state |
+| Partial skill memory | Ask user "Was there a compact? Should I recover?" | Conservative - don't assume state |
+| "continue" with no context | Assume compact → recover first | Safer than guessing |
+| Artifacts exist but no history | Run recovery to establish baseline | Artifacts prove previous work exists |
+| User mentions "recover" | Call opsis-compact-recovery (not using-opsis) | User is signaling recovery need |
+| Short prompt < 30 chars | Treat as potential compact | Defensive default |
+
+**Critical Principle:**
+> "When uncertain, recovery first. Using-opsis cannot safely operate without established state."
+
+**Do NOT proceed with using-opsis workflow if:**
+- You don't know the current mode
+- TODO list exists but you don't know project context
+- You remember some Opsis details but not the full skill set
+- You're unsure about the next action
 
 ## Mode Declaration
 
@@ -82,12 +107,29 @@ Reference **opsis-worktree-utils** for detection logic. Search in order: current
 
 **Execute in order:**
 
-1. **Re-activate using-opsis**: `skills---activate_skill` with `using-opsis`
-2. **Run worktree detection**: Reference opsis-worktree-utils to find artifacts
-3. **Load context**: Read PRD and tasks.md for active project
-4. **Recover TODO list**: Create or restore TODO from tasks.md unchecked items
-5. **Declare mode**: Use opsis-mode-enforcer format
-6. **Inform user**: Clear summary including location (worktree or main project)
+1. **Run worktree detection**: Reference opsis-worktree-utils to find artifact locations
+2. **Load context**: Read PRD and tasks.md for active project
+3. **Determine mode**:
+   - Tasks incomplete + PRD exists → **Implementation Mode**
+   - PRD incomplete → **Planning Mode**
+   - Tasks complete but not archived → **Verification Mode**
+4. **Recover TODO list**: Use `todo---set_items` to create TODO from tasks.md unchecked items
+5. **Inform user** (display this message):
+   ```
+   **Compact Recovery Complete**
+
+   Restored Opsis state:
+   - Project: {project-name}
+   - Mode: {Implementation|Planning|Verification}
+   - Progress: {completed}/{total} tasks ({percentage}%)
+   - Next: {next task or action}
+
+   **Current Position:**
+   {brief description of where we left off}
+
+   **Ready to continue?**
+   ```
+6. **Then proceed**: After recovery complete, continue with using-opsis workflow
 
 ### Phase 5: User Notification
 
@@ -113,12 +155,11 @@ Restored Opsis state:
 When user explicitly requests "reload opsis protocol" or "reload the opsis protocol":
 
 1. **Acknowledge**: "Acknowledged. Reloading opsis protocol..."
-2. **Re-read skill files**: Ensure latest opsis skill content
-3. **Re-activate using-opsis**: `skills---activate_skill`
-4. **Scan for context**: Check if active project exists
-5. **If context exists**: Run compact recovery (Phase 2-4)
-6. **If no context**: Confirm reload only: "Reloaded opsis protocol - using updated workflow rules"
-7. **Declare mode**: Standard mode declaration for current activity
+2. **Run worktree detection**: Reference opsis-worktree-utils to find artifact locations
+3. **Scan for context**:
+   - If projects found → Run compact recovery (Phase 2-4)
+   - If no projects → Confirm reload only: "Reloaded opsis protocol - using updated workflow rules"
+4. **Declare mode**: Standard mode declaration for current activity
 
 ## Decision Tree
 

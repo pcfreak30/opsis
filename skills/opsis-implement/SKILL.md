@@ -16,6 +16,55 @@ Purpose: Executing tasks or prompts with code generation
 Source: tasks.md
 Implementation: AUTHORIZED
 
+## ✅ Compact Recovery Check (MANDATORY - FIRST STEP)
+
+**ALWAYS check this FIRST before any other action.**
+
+### When to Check
+
+Before doing ANYTHING else in this skill:
+1. Check for compact recovery indicators
+2. If detected, invoke opsis-compact-recovery
+3. Only proceed after recovery completes
+
+**This is non-optional and must be the first action.**
+
+### Detection Indicators
+
+**Check for these signals:**
+- **"Conversation Summary" heading present** in recent messages
+- Short prompts without clear context (< 30 chars, no task/project reference)
+- User says "continue", "proceed", "next" without specifying task
+- Missing context about what was being worked on
+- Confusion indicators: "where were we", "what's next", "what task"
+- Explicit recovery requests: "recover", "restore state"
+
+**Critical:** Seeing a summary from planning does NOT mean compaction didn't occur. Compactions always leave a summary, but state still needs recovery. The presence of a summary is itself a compaction indicator.
+
+### Recovery Flow
+
+```
+IF (compact indicators detected):
+    1. STOP implementation
+    2. Invoke opsis-compact-recovery skill
+    3. Wait for recovery to complete
+    4. Restore state from artifacts (tasks.md, PRD, TODO)
+    5. Continue with recovered context
+ELSE:
+    → Proceed to Detection Priority
+```
+
+### Example
+
+```
+User: "Proceed" (after long planning session)
+Agent: Check for compact indicators
+       → "Conversation Summary" heading present
+       → Invoke opsis-compact-recovery
+       → Restore state: "Project X, Task 5/54 complete"
+       → Continue with Task 6
+```
+
 ## Detection Priority
 
 Reference **opsis-worktree-utils** for worktree detection to find tasks.md and prompts.
@@ -26,6 +75,7 @@ Check worktrees + project root for tasks.md → Task Implementation Mode
 Check worktrees + project root for prompts/*.md → Prompt Execution Mode
 If neither → Ask what to build
 ```
+
 
 ## Task Selection
 
@@ -87,18 +137,58 @@ User: "Proceed" (no tasks.md, no TODO, no context)
 Agent: "What should I implement? [all tasks | specific task | list available]"
 ```
 
-## 🚨 Automatic Workflow Routing
+## 🚨 Workflow Routing
 
-**CRITICAL: Before any implementation, you MUST auto-detect and route to the correct workflow.**
+**CRITICAL: Before any implementation, you MUST determine the correct workflow.**
 
-### Detection Steps
+### Routing Priority
 
-1. **Read tasks.md** to analyze task context
-2. **Count total tasks** in the implementation plan
-3. **Parse user command** for scope preference ("all", "task N", "phase N")
-4. **Apply routing rules below**
+**Decision Point Gate override takes precedence over auto-routing.**
 
-### Auto-Routing Rules (MANDATORY)
+The Decision Point Gate represents a considered decision (by user or agent) and should be honored. Auto-routing provides sensible defaults for typical scenarios.
+
+### Routing Decision Flow
+
+```
+STEP 1: Check for Decision Point Gate override
+    ├─→ IF (Decision Point Gate completed):
+    │   ├─→ Read "CHOSEN WORKFLOW" from Gate
+    │   ├─→ HONOR that workflow choice
+    │   └─→ Skip auto-routing
+    │
+    └─→ IF (Decision Point Gate NOT completed):
+        └─→ Apply auto-routing rules (see below)
+
+STEP 2: Apply auto-routing (if no override)
+    ├─→ Read tasks.md to analyze task context
+    ├─→ Count total tasks in the implementation plan
+    ├─→ Parse user command for scope preference ("all", "task N", "phase N")
+    └─→ Apply routing rules below
+
+STEP 3: Execute chosen workflow
+    ├─→ IF (routing triggers skill switch):
+    │   ├─→ Invoke the appropriate skill
+    │   └─→ STOP - DO NOT implement directly
+    │
+    └─→ IF (routing confirms opsis-implement):
+        └─→ Proceed with Task Execution Cycle
+```
+
+### Detecting Decision Point Gate Completion
+
+**A Decision Point Gate is considered completed when:**
+- The template sections are filled out:
+  - TASK INFORMATION section
+  - DECISION CRITERIA section
+  - WORKFLOW DECISION section with "CHOSEN WORKFLOW" specified
+- The "CHOSEN WORKFLOW" field contains a valid workflow name
+
+**Where to check:**
+- Look in `.aider-desk/opsis/outputs/{project}/` directories
+- Search for files containing "DECISION POINT GATE" header
+- Check if "CHOSEN WORKFLOW:" line exists with a value
+
+### Auto-Routing Rules (Applied only when no Gate override)
 
 | Context | Auto-Invoke | Threshold |
 |---------|-------------|-----------|
@@ -106,86 +196,245 @@ Agent: "What should I implement? [all tasks | specific task | list available]"
 | User says "all" AND tasks ≤ 10 | opsis-implement | 1-10 tasks = manageable size |
 | User says "task N" (single) | opsis-implement | Single task = direct execution |
 | User says "phase N" | opsis-implement | Phase-based = sequential |
+| User wants separate session | opsis-executing-plans | Human review checkpoints needed |
 | Bug investigation | opsis-systematic-debugging | Debugging workflow |
 | Multiple independent failures | opsis-dispatching-parallel-agents | Parallel problems |
 
-### Auto-Routing Logic
+### Routing Logic (Pseudocode)
 
 ```
-IF (user says "all" AND task_count > 10):
-    → AUTO-SWITCH to opsis-two-stage-review-execution
-    → DO NOT implement directly
-    → Invoke opsis-two-stage-review-execution skill immediately
-
-IF (user says "all" AND task_count ≤ 10):
-    → Use opsis-implement (direct execution)
-    → Proceed with Task Execution Cycle
-
-IF (user says "task N"):
-    → Use opsis-implement (single task)
-    → Execute only that specific task
-
-IF (bug detected):
-    → AUTO-SWITCH to opsis-systematic-debugging
-    → Invoke opsis-systematic-debugging skill immediately
+# Step 1: Check for Decision Point Gate override
+IF (Decision Point Gate exists AND is completed):
+    chosen_workflow = extract "CHOSEN WORKFLOW" from Gate
+    
+    IF (chosen_workflow == "opsis-two-stage-review-execution"):
+        → Invoke opsis-two-stage-review-execution
+        → STOP
+        
+    ELSE IF (chosen_workflow == "opsis-implement"):
+        → Use opsis-implement (direct execution)
+        → Proceed with Task Execution Cycle
+        
+    ELSE IF (chosen_workflow == "opsis-executing-plans"):
+        → Invoke opsis-executing-plans
+        → STOP
+        
+    ELSE IF (chosen_workflow == "opsis-dispatching-parallel-agents"):
+        → Invoke opsis-dispatching-parallel-agents
+        → STOP
+        
+    ELSE IF (chosen_workflow == "opsis-dispatching-parallel-agents"):
+        → Invoke opsis-dispatching-parallel-agents
+        → STOP
+        
+    ELSE:
+        → Invalid workflow specified, apply auto-routing
+        
+# Step 2: Apply auto-routing (no Gate override)
+ELSE:
+    # Step 2.5: Check for dependency analysis
+    IF (parallelization-analysis.md exists):
+        ├─→ Read parallelization-analysis.md
+        ├─→ Extract recommended_strategy and execution groups
+        ├─→ Apply dependency-based routing (see below)
+        └─→ SKIP task count threshold routing
+    
+    # Step 2.6: Apply routing based on analysis or fallback
+    IF (dependency_analysis_available):
+        ├─→ IF (recommended_strategy == "highly_parallel"):
+        │   → Invoke opsis-dispatching-parallel-agents
+        │   → STOP
+        │   
+        ├─→ ELSE IF (recommended_strategy == "moderately_parallel"):
+        │   → Invoke opsis-two-stage-review-execution
+        │   → STOP
+        │   
+        └─→ ELSE (mostly_sequential or unknown):
+            → Use opsis-implement (direct execution)
+            → Proceed with Task Execution Cycle
+    
+    ELSE (no dependency analysis, use fallback):
+        IF (user says "all" AND task_count > 10):
+            → Invoke opsis-two-stage-review-execution
+            → STOP
+            
+        ELSE IF (user says "all" AND task_count ≤ 10):
+            → Use opsis-implement (direct execution)
+            → Proceed with Task Execution Cycle
+            
+        ELSE IF (user says "task N"):
+            → Use opsis-implement (single task)
+            → Execute only that specific task
+            
+        ELSE IF (user wants separate session):
+            → Invoke opsis-executing-plans
+            → STOP
+            
+        ELSE IF (bug detected):
+            → Invoke opsis-systematic-debugging
+            → STOP
 ```
 
-### Example Auto-Routing
+### Example Routing Scenarios
 
-**Scenario 1: Large project**
+**Scenario 1: Decision Point Gate override**
 ```
-User: "Proceed with all tasks"
+Context: Agent completed Decision Point Gate with "CHOSEN WORKFLOW: opsis-implement"
+Agent: Detects Gate completion
+       → Reads "CHOSEN WORKFLOW: opsis-implement"
+       → Honors that choice (does not apply auto-routing)
+       → Proceeds with direct implementation
+```
+
+**Scenario 2: Auto-routing for large project**
+```
+Context: No Decision Point Gate, user says "Proceed with all tasks"
 Agent: Reads tasks.md → 54 tasks detected
-       → Auto-switch to opsis-two-stage-review-execution
-       → "Detected 54 tasks. Auto-routing to opsis-two-stage-review-execution for systematic quality gates."
+       → No Gate override found
+       → Auto-routing: 54 > 10 threshold
+       → Invokes opsis-two-stage-review-execution
 ```
 
-**Scenario 2: Small project**
+**Scenario 3: Auto-routing for small project**
 ```
-User: "Implement task 3"
+Context: No Decision Point Gate, user says "Implement task 3"
 Agent: Reads tasks.md → Single task requested
-       → Use opsis-implement directly
-       → Proceed with task execution
+       → No Gate override found
+       → Auto-routing: single task
+       → Uses opsis-implement directly
 ```
 
-**Scenario 3: Bug investigation**
+**Scenario 4: Edge case override**
 ```
-User: "Fix this crash"
-Agent: Bug detected → Auto-switch to opsis-systematic-debugging
-       → "Bug detected. Auto-routing to opsis-systematic-debugging for root cause investigation."
+Context: 15 simple copy/paste tasks (auto-routing would say two-stage review)
+User/Agent completes Decision Point Gate:
+    "CHOSEN WORKFLOW: opsis-implement"
+    Reason: "Tasks are simple copy/paste, no complex logic"
+Agent: Detects Gate completion
+       → Honors override despite 15 > 10 threshold
+       → Uses opsis-implement directly
 ```
 
-### 🚨 Critical Rule
+### 🚨 Critical Rules
 
-**DO NOT implement directly when auto-routing triggers a skill switch.**
+**DO NOT implement directly when routing triggers a skill switch:**
+- If routing says "invoke opsis-two-stage-review-execution" → Invoke it, STOP
+- If routing says "invoke opsis-systematic-debugging" → Invoke it, STOP
+- Only implement directly when routing confirms opsis-implement is correct
 
-- If auto-routing says "invoke opsis-two-stage-review-execution" → Invoke it, STOP
-- If auto-routing says "invoke opsis-systematic-debugging" → Invoke it, STOP
-- Only implement directly when auto-routing confirms opsis-implement is correct
+**ALWAYS check for Decision Point Gate first:**
+- Gate override = authoritative choice
+- Auto-routing = default behavior
+- Never apply auto-routing if a valid Gate exists
 
 ## Opsis Skill Invocation
 
-**Decision tree based on task context:**
+**After routing confirms opsis-implement for direct execution:**
 
-**After auto-routing, if still using opsis-implement:**
+Suggest relevant skills based on task context:
 
-1. **Need separate session with human review checkpoints?** → Suggest: opsis-executing-plans
-2. **Multiple independent failures?** → Suggest: opsis-dispatching-parallel-agents
-3. **Implementation plan with clear tasks in current session?** → Suggest: opsis-two-stage-review-execution
-4. **Bug or unexpected behavior?** → Suggest: opsis-systematic-debugging
-5. **Writing new code?** → Suggest: opsis-test-driven-development (optional)
-6. **About to claim completion?** → Require: opsis-verification-before-completion
+1. **About to write new code?** → Suggest: opsis-test-driven-development (optional)
+2. **About to claim completion?** → Require: opsis-verification-before-completion
 
-**Invocation pattern:** Auto-route → If still opsis-implement → Suggest skills → Get user confirmation → Activate sequentially
+**Note:** Workflow routing (two-stage review, executing plans, parallel agents, debugging) is handled by the **Routing Decision Flow** above, not here. This section is for optional quality skills during direct implementation.
 
 **Skill Selection Guidance:**
-- **opsis-executing-plans**: Execute in separate session with batch execution (3 tasks) and human review checkpoints between batches
-- **opsis-two-stage-review-execution**: Execute in current session with fresh task context per task and automatic two-stage PARALLEL review (spec compliance and code quality execute simultaneously)
-- **opsis-implement**: General execution without complex coordination needs, single task or simple sequential execution
+- **opsis-test-driven-development**: RED-GREEN-REFACTOR cycle with mandatory verification
+- **opsis-verification-before-completion**: Evidence before claims (required before completion)
+
+## Dynamic Execution Flow with Dependency Analysis
+
+When dependency analysis is available, execute tasks by group following the execution strategy:
+
+### Per-Group Execution
+
+For each execution group from parallelization-analysis.md:
+
+1. **Read group configuration**
+   - Group type (parallel or sequential)
+   - Execution mode (opsis-dispatching-parallel-agents or opsis-implement)
+   - Task list for this group
+   - Fan-in requirements
+
+2. **Execute based on group type**
+   
+   **If group is parallel:**
+   - Use opsis-dispatching-parallel-agents for 3+ independent tasks
+   - Each agent works on one task independently
+   - Wait for all tasks to complete
+   - Verify all tasks succeeded before proceeding
+   
+   **If group is sequential:**
+   - Use opsis-implement for direct execution
+   - Execute tasks one at a time
+   - Each task must complete before next starts
+   - Standard verification gate per task
+
+3. **Handle fan-in synchronization**
+   - If group has fan-in point: Wait for ALL tasks to complete
+   - Verify success of all dependent tasks
+   - Only proceed if all tasks succeeded
+   - If any task failed: Handle failure before continuing
+
+4. **Progress tracking**
+   ```
+   ✅ Group 0 Complete (parallel, 3 tasks): 12.3s
+   ⏳ Group 1 In Progress (sequential, 1 task): auth service
+   ⏸️  Group 2 Waiting (fan-in synchronization)
+      ├─→ T5: Complete ✓
+      └─→ T6: In Progress (middleware)
+   ```
+
+### Safety Checks Before Parallel Execution
+
+Before using opsis-dispatching-parallel-agents for a group:
+
+1. **Check resource conflicts**
+   - Same file modifications across tasks → Switch to sequential
+   - Same external service dependencies → Switch to sequential
+   - Same database schema changes → Switch to sequential
+
+2. **Verify independence**
+   - No dependencies between tasks in group
+   - No shared state or mutable resources
+   - Tasks can complete in any order
+
+3. **Fallback to sequential**
+   - If uncertainty detected → Use opsis-implement
+   - If conflicts detected → Use opsis-implement
+   - Conservative approach preferred over risky parallelization
+
+### Example Dynamic Execution
+
+```
+Group 0 (Parallel - 3 tasks):
+  Tasks: T1, T2, T3
+  Mode: opsis-dispatching-parallel-agents
+  Result: All complete ✓
+
+Group 1 (Sequential - 1 task):
+  Tasks: T4
+  Mode: opsis-implement
+  Result: Complete ✓
+
+Group 2 (Sequential - 2 tasks with resource conflict):
+  Tasks: T5, T6 (both modify auth package)
+  Mode: opsis-implement (switched from parallel due to conflict)
+  Result: Complete ✓
+
+Group 3 (Fan-in Point):
+  Waiting for T5, T6 before T7
+  Action: Synchronization complete ✓
+
+Group 4 (Parallel - 3 tasks):
+  Tasks: T7, T8, T9
+  Mode: opsis-dispatching-parallel-agents
+  Result: Executing...
+```
 
 ## Task Execution Cycle
 
-For each task:
+For each task (when using sequential execution):
 1. Read task (title, description, implementation details)
 2. Check PRD for requirements context
 3. Implement (write production-quality code)

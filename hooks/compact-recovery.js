@@ -34,20 +34,62 @@ const COMPACT_INDICATORS = {
     /what.*were.*doing/i
   ],
   
-  // Conversation flow indicators
+  // Conversation flow indicators - ENHANCED for post-compact scenarios
   conversation: [
     /^continue/i,
+    /^continue\s+project/i,
+    /^continue\s+work/i,
+    /^continue\s+task/i,
     /^next/i,
     /^proceed/i,
-    /^resume/i
+    /^resume/i,
+    /^resume\s+project/i,
+    /^resume\s+work/i,
+    /keep\s+going/i,
+    /carry\s+on/i
   ],
   
-  // State confusion indicators
+  // State confusion indicators - EXPANDED
   confusion: [
     /what.*task/i,
     /what.*status/i,
     /where.*left.*off/i,
-    /what.*phase/i
+    /what.*phase/i,
+    /what.*were.*doing/i,
+    /what.*is.*the.*current/i,
+    /what.*is.*next/i,
+    /what.*should.*i.*do/i,
+    /what.*do.*i.*do/i
+  ],
+  
+  // Recovery request indicators - NEW
+  recoveryRequest: [
+    /recover/i,
+    /restore.*state/i,
+    /get.*back.*to/i,
+    /restart.*where/i,
+    /reload.*opsis/i,
+    /reload.*protocol/i,
+    /reload.*the.*protocol/i
+  ],
+  
+  // Uncertainty indicators - NEW
+  uncertainty: [
+    /unsure/i,
+    /uncertain/i,
+    /confused/i,
+    /lost.*track/i,
+    /don't.*remember/i,
+    /forgot.*where/i
+  ],
+  
+  // Implicit continuation - NEW (short phrases without context)
+  implicit: [
+    /^(continue|next|proceed|resume)$/i,
+    /^(go|start|begin)$/i,
+    /^ok$/i,
+    /^yes$/i,
+    /^sure$/i
   ]
 };
 
@@ -83,16 +125,20 @@ function getTaskState(taskId) {
 /**
  * Check for compact recovery indicators
  * @param {string} prompt - User prompt
+ * @param {Object} context - Additional context (optional)
  * @returns {Object} - Detection result
  */
-function detectCompactIndicators(prompt) {
+function detectCompactIndicators(prompt, context = {}) {
   const lowerPrompt = prompt.toLowerCase();
+  const promptLength = prompt.length;
   
   const detection = {
     detected: false,
     indicatorType: null,
     matchedPatterns: [],
-    confidence: 0
+    confidence: 0,
+    requiresRecovery: false,
+    reason: null
   };
   
   // Check each indicator type
@@ -102,9 +148,53 @@ function detectCompactIndicators(prompt) {
         detection.detected = true;
         detection.indicatorType = type;
         detection.matchedPatterns.push(pattern.source);
-        detection.confidence += 0.3;
+        
+        // Weight confidence based on indicator type
+        switch (type) {
+          case 'direct':
+          case 'recoveryRequest':
+            detection.confidence += 0.5;
+            break;
+          case 'conversation':
+          case 'confusion':
+            detection.confidence += 0.3;
+            break;
+          case 'uncertainty':
+            detection.confidence += 0.4;
+            break;
+          case 'implicit':
+            // Implicit indicators require additional context
+            if (promptLength < 50) {
+              detection.confidence += 0.2;
+            }
+            break;
+          default:
+            detection.confidence += 0.15;
+        }
       }
     }
+  }
+  
+  // Defensive rule: Short prompts with no context are likely post-compact
+  if (promptLength < 30 && detection.confidence < 0.3) {
+    detection.detected = true;
+    detection.indicatorType = 'implicit';
+    detection.confidence = 0.35;
+    detection.matchedPatterns.push('SHORT_PROMPT_NO_CONTEXT');
+    detection.reason = 'Short prompt without context may indicate post-compact scenario';
+  }
+  
+  // Defensive rule: If artifacts exist ANY indicator triggers recovery
+  const artifacts = scanOpsisArtifacts();
+  if (artifacts.length > 0 && detection.confidence > 0.1) {
+    detection.requiresRecovery = true;
+    detection.reason = 'Artifacts exist with compact indicators - recovery required';
+  }
+  
+  // High confidence indicators always require recovery
+  if (detection.confidence >= 0.5) {
+    detection.requiresRecovery = true;
+    detection.reason = detection.reason || 'High confidence compact detection';
   }
   
   // Cap confidence at 1.0
@@ -344,7 +434,12 @@ async function onPromptSubmitted(event, context) {
       'Mode: ' + detectedMode + '\n' +
       'Purpose: [describe current activity based on recovered state]\n' +
       'Implementation: ' + (detectedMode === 'implementation' ? 'AUTHORIZED' : 'BLOCKED') + ' - [additional context]\n' +
-      '```'
+      '```\n' +
+      '\n📝 Next Steps:\n' +
+      '1. State is now restored from artifacts\n' +
+      '2. Proceed with using-opsis workflow\n' +
+      '3. Use todo---get_items to check current task progress\n' +
+      '4. Continue with appropriate workflow for detected mode'
     );
   } catch (error) {
     console.error('Compact Recovery Error in onPromptSubmitted:', error);
