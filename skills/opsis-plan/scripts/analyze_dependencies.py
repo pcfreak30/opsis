@@ -306,7 +306,7 @@ def generate_analysis_markdown(
     
     # Strategy descriptions
     strategy_descriptions = {
-        "highly_parallel": "Most tasks can execute in parallel. Use opsis-dispatching-parallel-agents for maximum efficiency.",
+        "highly_parallel": "Most tasks can execute in parallel. Use opsis-dispatching-parallel-agents for parallel execution.",
         "moderately_parallel": "Significant parallelization possible. Use opsis-two-stage-review-execution for balanced approach.",
         "mostly_sequential": "Limited parallelization due to dependencies. Use opsis-implement for direct execution."
     }
