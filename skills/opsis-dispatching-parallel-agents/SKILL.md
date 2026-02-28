@@ -1,29 +1,37 @@
 ---
 name: opsis-dispatching-parallel-agents
-description: Use when facing multiple independent failures across different test files, subsystems, or problem domains. Enables parallel concurrent resolution for near-linear time savings.
+description: Parallel execution engine for independent tasks across different domains. Use when implementing features with 3+ independent tasks that can execute simultaneously, or debugging multiple independent failures. Enables parallel concurrent execution for near-linear time savings.
 license: Apache-2.0
 ---
 
 # Dispatching Parallel Agents
 
-Structured methodology for parallelizing independent problem investigations using multiple AI agents.
+Parallel execution engine for coordinating multiple AI agents working on independent tasks simultaneously.
 
 ## Core Value Proposition
 
-Transform sequential multi-hour investigations into parallel concurrent resolutions, achieving near-linear time savings for independent problem domains.
+Transform sequential multi-hour work into parallel concurrent execution, achieving near-linear time savings for any independent task domains.
 
 ## When to Use
 
 **Use opsis-dispatching-parallel-agents when:**
+
+### Implementation Tasks
+- 3+ independent implementation tasks from a plan
+- Tasks span different files, modules, or subsystems
+- Tasks have no dependencies or shared state
+- Feature work requiring parallel execution
+
+### Debugging Tasks
 - Multiple failures across different test files
 - Multiple failures across different subsystems
 - Failures are truly independent (no shared state, no dependencies)
 - Problems can be understood and fixed without context from others
 
 **Do NOT use when:**
-- Single failure (use sequential investigation)
-- Related failures with shared code paths (investigate relationship first)
-- Failures have dependencies (use sequential investigation)
+- Single task (use direct execution)
+- Related tasks with shared code paths (execute together or investigate relationship first)
+- Tasks have dependencies (use sequential execution)
 - Unclear independence (assess first)
 
 ## Tool Selection
@@ -35,20 +43,25 @@ For the authoritative rule on subagent vs subtask usage, see **using-opsis**:
 - Multiple agents need to work independently on different domains
 - Parallel execution requires task tracking for each agent
 - Parent-child relationships enable monitoring of all parallel tasks
-- Need to collect results from multiple independent investigations
-- Each agent is executing work on a specific problem domain
+- Need to collect results from multiple independent tasks
+- Each agent is executing work on a specific task domain
+
+**Use Cases:**
+- **Implementation:** Each agent implements a feature task independently
+- **Debugging:** Each agent investigates and fixes a failure independently
 
 ## Decision Framework
 
 ### 1. Independence Assessment
 
-**Assess whether multiple failures are independent or related.**
+**Assess whether multiple tasks are independent or related.**
 
 **Decision criteria:**
-- Different test files with unrelated test domains
-- Different subsystems with separate code paths
-- No shared state between problem domains
-- Fixing one problem does not affect others
+- Different files, modules, or subsystems
+- Separate code paths with no overlap
+- No shared state between task domains
+- Completing one task does not affect others
+- No dependencies between tasks
 
 **Output:** Binary decision (parallel or sequential) with rationale
 
@@ -58,17 +71,17 @@ For the authoritative rule on subagent vs subtask usage, see **using-opsis**:
 
 **Checks:**
 - No concurrent resource conflicts (same files, same external services)
-- No dependency chains between problems
+- No dependency chains between tasks
 - Available agent capacity (system limits)
 
 **Output:** Go/no-go decision for parallel dispatch
 
 ### 3. Domain Grouping
 
-**Group related failures into coherent problem domains.**
+**Group related tasks into coherent work domains.**
 
 **Process:**
-1. Cluster failures by file/subsystem
+1. Cluster tasks by file/subsystem or feature area
 2. Verify independence between clusters
 3. Assign each cluster to one agent
 
@@ -78,24 +91,24 @@ For the authoritative rule on subagent vs subtask usage, see **using-opsis**:
 
 ### Focused Scope Definition
 
-Each agent prompt must specify a single problem domain.
+Each agent prompt must specify a single task domain.
 
 **Components:**
-- Specific file(s) to investigate
-- Clear goal statement (e.g., "Make these tests pass")
+- Specific file(s) to work on
+- Clear goal statement (e.g., "Implement the user authentication feature" or "Fix these failing tests")
 - Scope boundaries (what to include/exclude)
 
-**Constraint:** Maximum one test file or one subsystem per agent
+**Constraint:** Maximum one cohesive task group per agent (e.g., one feature, one test file, or one subsystem)
 
 ### Self-Contained Context
 
 Each agent prompt must include all necessary context.
 
 **Required elements:**
-- Error messages and stack traces (sanitized)
-- Test names and descriptions
+- Task requirements or error messages (sanitized)
+- Relevant specifications or test descriptions
 - Relevant code snippets (if applicable)
-- Expected vs actual behavior
+- Expected vs actual behavior (for debugging) or implementation details (for features)
 - Any known constraints or requirements
 
 **No external references or "see other file" instructions.**
@@ -105,7 +118,7 @@ Each agent prompt must include all necessary context.
 Each agent prompt must specify expected output format.
 
 **Required elements:**
-- Summary of findings (root cause analysis)
+- Summary of work completed
 - Changes made (files modified, functions affected)
 - Rationale for approach
 - Verification steps taken
@@ -119,7 +132,7 @@ Each agent prompt must include explicit constraints.
 
 **Constraint categories:**
 - Code modification bounds (files allowed to edit)
-- Approach restrictions (e.g., "do not increase timeouts")
+- Approach restrictions (e.g., "do not increase timeouts", "follow existing patterns")
 - Dependency constraints (must use existing patterns)
 - Testing requirements (must run specific tests)
 
@@ -142,7 +155,7 @@ Spawn parallel agent tasks using the task system.
 **🚨 CRITICAL: executeInBackground MUST be true**
 
 This skill requires parallel execution because:
-1. **Problems are independent:** Each agent works on a completely separate problem domain
+1. **Tasks are independent:** Each agent works on a completely separate task domain
 2. **No coordination needed:** Agents don't need to communicate or wait for each other
 3. **Time savings critical:** Parallel execution achieves near-linear time savings
 4. **Parent monitors all:** The parent task dispatches all tasks, then monitors all of them simultaneously
@@ -263,30 +276,30 @@ Provide guidance for integrating agent changes.
 ### Prompt Construction Mistakes
 
 **Anti-Pattern 1: Too Broad Scope**
-- ❌ "Fix all the failing tests"
-- ✅ "Fix agent-tool-abort.test.ts failures"
+- ❌ "Implement the entire authentication system"
+- ✅ "Implement the user login API endpoint"
 - Impact: Agent gets lost, unclear focus, wasted time
 
 **Anti-Pattern 2: Missing Context**
-- ❌ "Fix the race condition in the tests"
-- ✅ "Fix timing issues in agent-tool-abort.test.ts: expects 'interrupted at' but gets timeout"
+- ❌ "Fix the race condition" or "Add the feature"
+- ✅ "Fix timing issues in agent-tool-abort.test.ts" or "Implement JWT token validation in auth service"
 - Impact: Agent doesn't know where to start, requires clarification
 
 **Anti-Pattern 3: No Constraints**
-- ❌ "Make the tests pass"
-- ✅ "Fix tests only, do not modify production code. Replace timeouts with event-based waiting."
+- ❌ "Make it work"
+- ✅ "Implement only this endpoint, do not modify other services. Follow existing patterns."
 - Impact: Agent might refactor everything, unnecessary changes
 
 **Anti-Pattern 4: Vague Output Expectations**
 - ❌ "Fix it and tell me what you did"
-- ✅ "Return: Summary of root cause, list of files modified, verification steps taken"
+- ✅ "Return: Summary of work completed, list of files modified, verification steps taken"
 - Impact: Unclear what changed, difficult to review
 
 ### Execution Mistakes
 
-**Anti-Pattern 5: Related Failures Treated as Independent**
-- ❌ Dispatch parallel agents for failures in same code path
-- ✅ Investigate relationship first, combine related failures
+**Anti-Pattern 5: Related Tasks Treated as Independent**
+- ❌ Dispatch parallel agents for tasks in same code path
+- ✅ Investigate relationship first, combine related tasks
 - Impact: Redundant work, potential conflicts, wasted time
 
 **Anti-Pattern 6: Sequential Task Creation**
@@ -308,17 +321,103 @@ Provide guidance for integrating agent changes.
 
 **Anti-Pattern 9: Parallel When Not Safe**
 - ❌ Dispatch parallel agents for shared state problems
-- ✅ Use sequential investigation when dependencies exist
-- Impact: Race conditions, corrupted state, unreliable fixes
+- ✅ Use sequential execution when dependencies exist
+- Impact: Race conditions, corrupted state, unreliable results
 
 **Anti-Pattern 10: Sequential When Parallel Possible**
-- ❌ Investigate independent failures sequentially
-- ✅ Use parallel dispatch for truly independent problems
-- Impact: Wasted time, extended debugging timeline
+- ❌ Execute independent tasks sequentially
+- ✅ Use parallel dispatch for truly independent tasks
+- Impact: Wasted time, extended execution timeline
 
-## Usage Example
+## Usage Examples
 
-### Scenario: 6 test failures across 3 files after major refactoring
+### Example 1: Parallel Feature Implementation
+
+**Scenario:** 3 independent features from an implementation plan
+
+**Tasks:**
+- Task 1: Implement user authentication API
+- Task 2: Implement data export functionality
+- Task 3: Implement email notification system
+
+**Decision:** Independent domains - auth separate from export separate from notifications
+
+**Agent 1 Prompt:**
+```markdown
+Implement the user authentication API in src/api/auth/:
+
+Requirements:
+- POST /auth/login - authenticate user with email/password
+- POST /auth/logout - clear session
+- GET /auth/me - get current user info
+- Use JWT tokens for authentication
+- Follow existing error handling patterns in src/api/
+
+Your task:
+1. Create the auth API endpoints
+2. Integrate with existing user service
+3. Add proper error handling
+4. Document the API
+
+Do NOT modify other services or APIs.
+
+Return: Summary of implementation, files created/modified, verification steps taken.
+```
+
+**Agent 2 Prompt:**
+```markdown
+Implement data export functionality in src/export/:
+
+Requirements:
+- Export user data to CSV format
+- Export order data to JSON format
+- Support filtering and date ranges
+- Follow existing service patterns in src/services/
+
+Your task:
+1. Create export service
+2. Add export endpoints to API
+3. Add proper validation
+4. Document the export formats
+
+Do NOT modify auth or other services.
+
+Return: Summary of implementation, files created/modified, verification steps taken.
+```
+
+**Agent 3 Prompt:**
+```markdown
+Implement email notification system in src/notifications/:
+
+Requirements:
+- Send welcome emails on signup
+- Send order confirmation emails
+- Use existing email service in src/email/
+- Follow existing notification patterns
+
+Your task:
+1. Create notification service
+2. Integrate with auth and orders services
+3. Add email templates
+4. Test email sending
+
+Do NOT modify other services.
+
+Return: Summary of implementation, files created/modified, verification steps taken.
+```
+
+**Results:**
+- Agent 1: Created auth API with JWT authentication
+- Agent 2: Created export service with CSV/JSON support
+- Agent 3: Created notification service with email templates
+
+**Integration:** All implementations independent, no conflicts, full feature set complete
+
+**Time Saved:** 3 features implemented in parallel vs sequentially
+
+### Example 2: Parallel Debugging (Original Use Case)
+
+**Scenario:** 6 test failures across 3 files after major refactoring
 
 **Failures:**
 - `agent-tool-abort.test.ts`: 3 failures (timing issues)
@@ -364,17 +463,17 @@ Return: Summary of what you found and what you fixed.
 
 ## Key Benefits
 
-1. **Parallelization Efficiency** - Multiple investigations happen simultaneously, achieving near-linear time savings
+1. **Parallelization Efficiency** - Multiple tasks happen simultaneously, achieving near-linear time savings
 2. **Focused Attention** - Each agent has narrow scope, reducing cognitive load and context switching
 3. **Independence Guarantee** - Agents work on isolated domains, eliminating interference and coordination overhead
-4. **Scalable Approach** - Pattern extends from 2 to N agents, accommodating increasing failure counts
-5. **Quality Preservation** - Focused prompts and constraints maintain fix quality while increasing speed
+4. **Scalable Approach** - Pattern extends from 2 to N agents, accommodating increasing task counts
+5. **Quality Preservation** - Focused prompts and constraints maintain work quality while increasing speed
 6. **Resource Optimization** - Maximizes utilization of available AI agent capabilities
 
 ## Success Metrics
 
 ### Quantitative Metrics
-- **Time Savings:** ≥50% reduction in debugging time for 3+ independent failures
+- **Time Savings:** ≥50% reduction in execution time for 3+ independent tasks
 - **Parallel Efficiency:** Actual parallel time ≤ (sequential time / N) + 20% overhead
 - **Success Rate:** ≥90% of parallel dispatches achieve complete resolution
 - **Conflict Rate:** ≤10% of parallel dispatches detect conflicts requiring manual resolution
@@ -382,14 +481,14 @@ Return: Summary of what you found and what you fixed.
 ### Qualitative Metrics
 - **User Satisfaction:** Positive feedback on clarity and effectiveness
 - **Adoption Rate:** Increasing usage across teams over time
-- **Error Reduction:** Fewer regressions introduced during parallel fixes
+- **Error Reduction:** Fewer regressions introduced during parallel work
 - **Knowledge Transfer:** Improved understanding of parallel agent capabilities
 
 ## Risks and Mitigations
 
 ### Risk 1: False Independence Assessment
 
-**Description:** Incorrectly treating related failures as independent
+**Description:** Incorrectly treating related tasks as independent
 
 **Impact:** Redundant work, conflicting fixes, wasted time
 
@@ -441,19 +540,19 @@ Before accepting parallel agent results:
 - [ ] Ran full test suite
 - [ ] Performed spot checks on critical paths
 - [ ] Validated no regressions introduced
-- [ ] Confirmed all original failures resolved
+- [ ] Confirmed all original tasks completed
 - [ ] Documented any remaining issues
 
 ## Related Skills
 
-- **opsis-systematic-debugging** - Each agent should use systematic debugging for their domain
+- **opsis-systematic-debugging** - Each agent should use systematic debugging for debugging tasks
 - **opsis-verification-before-completion** - Verify integration before claiming completion
-- **opsis-two-stage-review-execution** - Alternative for single-session execution with reviews
+- **opsis-two-stage-review-execution** - Alternative for sequential execution with reviews
 
 ## Core Principles
 
-1. **Independence First:** Only dispatch parallel agents when problems are truly independent
-2. **Focused Scope:** Each agent receives a single, well-defined problem domain
+1. **Independence First:** Only dispatch parallel agents when tasks are truly independent
+2. **Focused Scope:** Each agent receives a single, well-defined task domain
 3. **Self-Contained Context:** All necessary information included in each agent's prompt
 4. **Specific Output:** Clear expectations for what each agent must return
 5. **Controlled Constraints:** Explicit boundaries on what agents can and cannot modify
