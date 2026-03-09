@@ -1,6 +1,6 @@
 ---
 name: opsis-verify
-description: Spec-driven technical audit comparing implementation against PRD requirements and tasks.md. Generate structured review comments.
+description: "Spec-driven technical audit comparing implementation against PRD requirements and tasks.md. Generate structured review comments."
 license: Apache-2.0
 ---
 
@@ -8,82 +8,48 @@ license: Apache-2.0
 
 Spec-driven technical audit comparing implementation against PRD and tasks.md.
 
-## Core Principle
-
-**No completion claims without evidence. Verification ensures implementation matches specification.**
-
-## Activation Logging
-
-When activating this skill, always announce:
-
-```text
-Using opsis-verify to perform spec-driven technical audit
-```
-
-## Mode Declaration
-
-Reference **opsis-mode-enforcer** for mode boundaries.
-
-**OPSIS MODE: Verification**
-Mode: verification
-Purpose: Spec-driven technical audit against requirements and implementation plan
-Implementation: BLOCKED - Read-only analysis, no code modifications
-
 ## When to Use
 
-**Use opsis-verify when:**
+Use this skill when:
+
 - Verifying implementation against PRD requirements
 - Checking compliance with tasks.md specifications
 - Generating structured review comments
 - Performing gap analysis between plan and code
 
-**Use alternative approaches when:**
+Do not use when:
+
 - Fixing issues found during verification → Use opsis-implement
 - Creating new features → Use opsis-plan then opsis-implement
 - Simple code review → Use opsis-review
 
-## Preconditions
+## Rules
 
-- PRD document exists (`{location}/full-prd.md` or `{location}/prd.md`)
-- Tasks file exists (`{location}/tasks.md`)
-- Implementation files are accessible
-- Mode is Verification (read-only)
+### Rule: No completion claims without evidence
 
-## Postconditions
+**When:** Claiming any status
 
-- Verification report generated with structured findings
-- Review comments categorized by severity
-- Gap analysis between spec and implementation documented
-- Recommended actions identified
+**Then:** Provide verification evidence
 
-## Success Metrics
+**Verification gate:**
+1. IDENTIFY: Determine what command proves the claim
+2. RUN: Execute the FULL command (fresh, complete)
+3. READ: Review full output, check exit code, count failures
+4. VERIFY: Confirm output actually supports the claim
+5. ONLY THEN: Make the completion claim
 
-- All PRD requirements verified against implementation
-- All completed tasks from tasks.md checked
-- Review comments use standardized severity levels
-- Report includes specific, actionable findings
-- Zero false positive claims
+**Skip any step = lying, not verifying**
 
-## Tool Selection
+### Rule: Use verification process phases
 
-For the authoritative rule on subagent vs subtask usage, see **using-opsis**:
-- **Rule of Thumb:** Use subagents for research and decisions. Use subtasks for executing work.
+**When:** Starting verification
 
-**This skill primarily uses direct analysis** but may use `subagents---run_task` for:
-- Large-scale requirement coverage analysis
-- Cross-file architectural verification
-- Fresh perspective when verification is complex
-
-## Verification Process
+**Then:** Follow verification phases
 
 **Phase 1: Scope & Context**
-
-Reference **opsis-worktree-utils** for worktree detection to find PRD and tasks.md.
-
-**After locating files:**
-1. Identify completed work from `{location}/tasks.md` (checked `[x]` items)
-2. Load requirements from `{location}/full-prd.md`
-3. Read source files from completed tasks
+- Identify completed work from tasks.md (checked `[x]` items)
+- Load requirements from full-prd.md
+- Read source files from completed tasks
 
 **Phase 2: The Audit (Gap Analysis)**
 - Plan vs Code: Did implementation follow technical notes?
@@ -91,9 +57,15 @@ Reference **opsis-worktree-utils** for worktree detection to find PRD and tasks.
 - Code vs Standards: Hardcoded values, type errors, violations?
 
 **Phase 3: Review Report**
-Generate structured Review Board with specific, actionable comments.
+- Generate structured Review Board with specific, actionable comments
 
-## Review Comment Categories
+### Rule: Use review comment categories
+
+**When:** Generating review comments
+
+**Then:** Apply correct severity levels
+
+**Severity levels:**
 
 | Severity | When to Use | Action |
 |----------|-------------|--------|
@@ -102,8 +74,13 @@ Generate structured Review Board with specific, actionable comments.
 | 🟡 MINOR | Code style, naming, comments, optimization | Optional |
 | ⚪ OUTDATED | Code correct but Plan/PRD wrong | Update Plan |
 
-## Output Format
+### Rule: Use standard output format
 
+**When:** Generating verification report
+
+**Then:** Use report template
+
+**Output format:**
 ```markdown
 # Verification Report: [Phase/Feature]
 
@@ -124,96 +101,113 @@ Generate structured Review Board with specific, actionable comments.
 - **Option C**: Mark #1 as outdated
 ```
 
-## Progress Tracking
+### Rule: Apply memory integration
 
-Reference **opsis-progress-tracking** for standardized progress reporting.
+**When:** Storing or retrieving memory
 
-Use the Review Board table format for verification results:
+**Then:** Follow eligibility criteria
 
-```markdown
-| ID | Severity | Location | Issue |
-|:--:|:--------:|:---------|:------|
-| 1  | Critical | file.ts:42 | Security vulnerability |
-| 2  | High     | api.js:15  | Missing error handling |
-```
+**When to retrieve:**
+- Before starting verification: Retrieve architectural decisions and anti-patterns
+- During analysis: Retrieve previous verification findings
+- After identifying issues: Retrieve similar patterns
 
-## Memory Integration
+**When to store:**
+- After verification passes: Store architectural decisions
+- After verification fails: Store anti-patterns and critical findings
 
-Reference **opsis-memory-storage** for memory eligibility criteria.
+**Store ONLY if ALL true:**
+- Reusable across future verifications or implementations
+- Stable (unlikely to change soon)
+- Actionable (changes future behavior or prevents issues)
+- Type matches: code-pattern or task
 
-**When to Retrieve Memory:**
-- Before starting verification: Retrieve architectural decisions and anti-patterns relevant to the project
-- During analysis: Retrieve previous verification findings for context
-- After identifying issues: Retrieve similar patterns from previous verifications
-
-**When to Store Memory:**
-- After verification passes: Store architectural decisions made during implementation
-- After verification fails: Store anti-patterns identified and critical findings
-- After discovering quality issues: Store patterns that prevent future issues
-
-**Storage Types & Criteria:**
-
-Store ONLY if ALL are true:
-1. **Reusable** across future verifications or implementations
-2. **Stable** (unlikely to change soon)
-3. **Actionable** (changes future behavior or prevents issues)
-4. **Type matches**: `code-pattern` or `task`
-
-| Type | When to Store | Examples |
-|------|---------------|----------|
-| `code-pattern` | Architectural decisions | "Use repository pattern for data access", "DTOs required for API boundaries" |
-| `code-pattern` | Anti-patterns identified | "Avoid direct DB access from controllers", "Never hardcode API keys" |
-| `task` | Verification contracts | "PRD requirements must be testable", "Tasks must map to specific files" |
-
-**NEVER Store:**
+**Never store:**
 - Task progress/status or completion state
 - One-off bug details or transient issues
-- Implementation details (how code was written)
+- Implementation details
 - Specific file lists from this verification
 - Logs/stack traces or error messages
 - Secrets/tokens/credentials/PII
-- Information directly derivable from repository or PRD
 
-## Verification Gate
+### Rule: Follow fixing workflow
 
-Reference **opsis-verification-before-completion** for the iron law:
+**When:** User says "Fix #1" or "Fix all critical"
 
-**NO COMPLETION CLAIMS WITHOUT FRESH VERIFICATION EVIDENCE**
-
-Before claiming any work is complete:
-1. **IDENTIFY:** Determine what command proves the claim
-2. **RUN:** Execute the FULL command (fresh, complete execution)
-3. **READ:** Review full output, check exit code, count failures
-4. **VERIFY:** Confirm output actually supports the claim
-5. **ONLY THEN:** Make the completion claim
-
-## Fixing Workflow
-
-When user says "Fix #1" or "Fix all critical":
+**Then:**
 1. Acknowledge
-2. Transition to Implementation Mode (reference **opsis-mode-enforcer**)
+2. Transition to Implementation Mode
 3. Implement fix
 4. Re-verify (focused verification on specific issue)
 5. Return to Verification Mode
 
-## Integration
+## Process
 
-Works with verification-gate.js hook to block completion claims without evidence.
+1. Phase 1: Scope & Context
+   - Identify completed work from tasks.md
+   - Load requirements from full-prd.md
+   - Read source files from completed tasks
 
-References: `.aider-desk/opsis/instructions/workflows/verify.md`
+2. Phase 2: The Audit (Gap Analysis)
+   - Compare plan vs code
+   - Compare PRD vs code
+   - Compare code vs standards
 
-## Related Skills
+3. Phase 3: Review Report
+   - Generate structured Review Board
+   - Categorize by severity
+   - Provide recommended actions
 
-- **opsis-mode-enforcer** - Mode boundaries and enforcement
-- **opsis-verification-before-completion** - Evidence-based completion claims
-- **opsis-progress-tracking** - Standardized progress reporting
-- **opsis-memory-storage** - Memory eligibility and storage patterns
-- **opsis-worktree-utils** - Worktree detection
-- **opsis-implement** - Fix implementation after verification
-- **opsis-archive** - Archive completed projects after verification passes
+## Preconditions
 
----
+Before using this skill, verify:
 
-## License
+- PRD document exists (use opsis-worktree-utils to locate)
+- Tasks file exists (use opsis-worktree-utils to locate)
+- Implementation files are accessible
+- Mode is Verification (read-only)
 
-Apache-2.0
+**CRITICAL: Before accessing PRD or tasks.md**
+- Stop if worktree state unknown
+- Invoke opsis-worktree-utils
+- Get resolved paths for state files
+- Only then proceed with file operations
+
+## Postconditions
+
+After completing this skill, verify:
+
+- Verification report generated with structured findings
+- Review comments categorized by severity
+- Gap analysis between spec and implementation documented
+- Recommended actions identified
+
+## Success Metrics
+
+This skill is successful when:
+
+- All PRD requirements verified against implementation
+- All completed tasks from tasks.md checked
+- Review comments use standardized severity levels
+- Report includes specific, actionable findings
+- Zero false positive claims
+
+## Common Situations
+
+**Situation:** Issues found
+
+**Pattern:**
+- When: Verification identifies issues
+- Then: Transition to Implementation Mode, implement fix, re-verify
+
+**Situation:** Code correct but plan wrong
+
+**Pattern:**
+- When: Implementation matches requirements but plan differs
+- Then: Mark as OUTDATED, recommend updating plan
+
+**Situation:** All pass
+
+**Pattern:**
+- When: Zero issues, full compliance
+- Then: Ready for archive or branch completion

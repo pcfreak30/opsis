@@ -1,6 +1,6 @@
 ---
 name: opsis-systematic-debugging
-description: Use when encountering any bug, test failure, crash, performance problem, or unexpected behavior, before proposing fixes. Enforces root cause investigation before any fix attempt.
+description: "Use when encountering any bug, test failure, crash, performance problem, or unexpected behavior, before proposing fixes. Enforces root cause investigation before any fix attempt."
 license: Apache-2.0
 ---
 
@@ -8,52 +8,10 @@ license: Apache-2.0
 
 Systematic debugging methodology that replaces random fixes with structured root cause investigation.
 
-## Activation Log
-
-When this skill is activated, log:
-
-```text
-ACTIVATED: opsis-systematic-debugging
-Issue Type: {bug|test failure|crash|performance|unexpected behavior}
-Component: {affected component}
-Phase: {1|2|3|4} - {phase name}
-```
-
-## Preconditions
-
-Before invoking this skill:
-1. An issue exists that needs investigation
-2. Error messages, logs, or symptoms are accessible
-3. Codebase is available for analysis
-4. The Iron Law is acknowledged: **NO FIXES WITHOUT ROOT CAUSE INVESTIGATION FIRST**
-
-## Postconditions
-
-After completing this skill:
-1. Root cause is identified and documented
-2. Fix addresses the root cause, not symptoms
-3. Verification confirms the fix works
-4. No new bugs introduced
-5. Success criteria from Phase 4 are met
-
-## Success Metrics
-
-This skill is successful when:
-- First-time fix rate: 95% (vs 40% without systematic approach)
-- Time to fix: 15-30 minutes (vs 2-3 hours of thrashing)
-- Root cause is understood before any fix attempt
-- Fix is verified with evidence before claiming completion
-- No regression or new issues introduced
-
-## The Iron Law
-
-**NO FIXES WITHOUT ROOT CAUSE INVESTIGATION FIRST**
-
-This is not negotiable. The skill enforces absolute adherence to this principle.
-
 ## When to Use
 
-Use for ANY technical issue:
+Use this skill when:
+
 - Test failures
 - Bugs in production
 - Unexpected behavior
@@ -61,59 +19,49 @@ Use for ANY technical issue:
 - Build failures
 - Integration issues
 
-**Especially critical when:**
-- Under time pressure (emergencies make guessing tempting)
-- "Just one quick fix" seems obvious
-- Multiple fixes have already been tried
-- Previous fix didn't work
-- Full understanding of the issue is lacking
+Do not use when:
 
-## Mode Declaration
+- No issue exists
+- Issue is already understood and documented
 
-For complete mode enforcement rules, Iron Laws, and mode boundary enforcement, reference **opsis-mode-enforcer**.
+## Rules
 
-**Key modes during debugging:**
-- **Investigation Mode** (Phases 1-3): Read-only analysis, hypothesis formation
-- **Implementation Mode** (Phase 4): Apply verified fix, create tests
-- **Verification Mode**: Confirm fix works, no regressions
+### Rule: The Iron Law
 
-## Tool Selection
+**When:** ANY technical issue
 
-For the authoritative rule on subagent vs subtask usage, see **using-opsis**:
-- **Rule of Thumb:** Use subagents for research and decisions. Use subtasks for executing work.
+**Then:** Follow Iron Law
 
-**This skill primarily uses direct investigation** but may use `subagents---run_task` for:
-- Complex multi-component analysis
-- Large-scale pattern searches
-- Fresh perspective when stuck (≥3 failed fixes)
+**Iron Law:** NO FIXES WITHOUT ROOT CAUSE INVESTIGATION FIRST
 
-## The Four Phases
+**This is not negotiable.**
 
-### Phase 1: Root Cause Investigation
+### Rule: Phase 1 - Root Cause Investigation
 
-**Complete investigation before any fix attempt.**
+**When:** Starting investigation
 
-1. **Read Error Messages Carefully**
+**Then:** Complete investigation before any fix attempt
+
+**Phase 1 steps:**
+
+1. **Read error messages carefully**
    - Do not skip past errors or warnings
    - Read stack traces completely
    - Note line numbers, file paths, error codes
-   - Error messages often contain the exact solution
 
-2. **Reproduce Consistently**
+2. **Reproduce consistently**
    - Can the issue be triggered reliably?
    - What are the exact steps?
    - Does it happen every time?
-   - If not reproducible → gather more data, do not guess
 
-3. **Check Recent Changes**
+3. **Check recent changes**
    - What changed that could cause this?
    - Git diff, recent commits
    - New dependencies, config changes
-   - Environmental differences
 
-4. **Gather Evidence in Multi-Component Systems**
+4. **Gather evidence in multi-component systems**
 
-   **WHEN system has multiple components (e.g., CI → build → signing, API → service → database):**
+   **WHEN system has multiple components:**
 
    **BEFORE proposing fixes, add diagnostic instrumentation:**
    - For EACH component boundary: log what data enters component
@@ -123,7 +71,7 @@ For the authoritative rule on subagent vs subtask usage, see **using-opsis**:
 
    Run once to gather evidence showing WHERE it breaks, THEN analyze evidence to identify failing component, THEN investigate that specific component.
 
-5. **Trace Data Flow**
+5. **Trace data flow**
 
    **WHEN error is deep in call stack:**
    - Where does bad value originate?
@@ -131,115 +79,113 @@ For the authoritative rule on subagent vs subtask usage, see **using-opsis**:
    - Keep tracing up until the source is found
    - Fix at source, not at symptom
 
-**Success Criteria:** Understand WHAT is happening and WHY it is happening.
+**Success criteria:** Understand WHAT is happening and WHY it is happening.
 
-### Phase 2: Pattern Analysis
+### Rule: Phase 2 - Pattern Analysis
 
-**Find the pattern before fixing.**
+**When:** Root cause investigation complete
 
-1. **Find Working Examples**
+**Then:** Find the pattern before fixing
+
+**Phase 2 steps:**
+
+1. **Find working examples**
    - Locate similar working code in the same codebase
    - What works that's similar to what's broken?
 
-2. **Compare Against References**
+2. **Compare against references**
    - If implementing a pattern, read reference implementation COMPLETELY
    - Do not skim - read every line
    - Understand the pattern fully before applying
 
-3. **Identify Differences**
+3. **Identify differences**
    - What's different between working and broken?
    - List every difference, however small
-   - Do not assume "that can't matter"
 
-4. **Understand Dependencies**
+4. **Understand dependencies**
    - What other components does this need?
    - What settings, config, environment?
-   - What assumptions does it make?
 
-**Success Criteria:** Identify differences between working and broken implementations.
+**Success criteria:** Identify differences between working and broken implementations.
 
-### Phase 3: Hypothesis and Testing
+### Rule: Phase 3 - Hypothesis and Testing
 
-**Use scientific method to test hypotheses.**
+**When:** Pattern analysis complete
 
-1. **Form Single Hypothesis**
+**Then:** Use scientific method
+
+**Phase 3 steps:**
+
+1. **Form single hypothesis**
    - State clearly: "I think X is the root cause because Y"
    - Write it down
    - Be specific, not vague
 
-2. **Test Minimally**
+2. **Test minimally**
    - Make the SMALLEST possible change to test hypothesis
    - One variable at a time
-   - Do not fix multiple things at once
 
-3. **Verify Before Continuing**
+3. **Verify before continuing**
    - Did it work? Yes → Phase 4
    - Didn't work? Form NEW hypothesis
    - DO NOT add more fixes on top
 
-4. **When You Don't Know**
+4. **When you don't know**
    - Say "I don't understand X"
    - Do not pretend to know
    - Ask for help
    - Research more
 
-**Success Criteria:** Hypothesis confirmed or new hypothesis formed.
+**Success criteria:** Hypothesis confirmed or new hypothesis formed.
 
-### Phase 4: Implementation
+### Rule: Phase 4 - Implementation
 
-**Fix the root cause, not the symptom.**
+**When:** Hypothesis confirmed
 
-1. **Create Failing Test Case**
+**Then:** Fix the root cause, not the symptom
+
+**Phase 4 steps:**
+
+1. **Create failing test case**
    - Simplest possible reproduction
    - Automated test if possible
    - One-off test script if no framework
    - MUST have before fixing
 
-2. **Implement Single Fix**
+2. **Implement single fix**
    - Address the root cause identified
    - ONE change at a time
-   - No "while I'm here" improvements
-   - No bundled refactoring
 
-3. **Verify Fix**
+3. **Verify fix**
 
-   For complete verification procedures, reference **opsis-verification-gate**:
-
-   ```
-   IDENTIFY → RUN → READ → VERIFY
-   ```
-
-   - Test passes now?
-   - No other tests broken?
-   - Issue actually resolved?
-
-4. **If Fix Doesn't Work**
+4. **If fix doesn't work**
    - STOP
    - Count: How many fixes have been tried?
    - If < 3: Return to Phase 1, re-analyze with new information
    - **If ≥ 3: STOP and question the architecture (step 5 below)**
-   - DO NOT attempt Fix #4 without architectural discussion
 
-5. **If 3+ Fixes Failed: Question Architecture**
+5. **If 3+ fixes failed: Question architecture**
 
    **Pattern indicating architectural problem:**
-   - Each fix reveals new shared state/coupling/problem in different place
-   - Fixes require "massive refactoring" to implement
+   - Each fix reveals new shared state/coupling/problem
+   - Fixes require "massive refactoring"
    - Each fix creates new symptoms elsewhere
 
    **STOP and question fundamentals:**
    - Is this pattern fundamentally sound?
    - Are we "sticking with it through sheer inertia"?
-   - Should we refactor architecture vs. continue fixing symptoms?
 
-   Discuss with human partner before attempting more fixes. This is NOT a failed hypothesis - this is a wrong architecture.
+   Discuss with human partner before attempting more fixes.
 
-**Success Criteria:** Bug resolved, tests pass, no new issues introduced.
+**Success criteria:** Bug resolved, tests pass, no new issues introduced.
 
-## Red Flags - STOP and Follow Process
+### Rule: Stop at red flags
 
-When you see these red flags, STOP and return to Phase 1:
+**When:** Seeing red flags
 
+**Then:** STOP and follow process
+
+**Red flags:**
 - "Quick fix for now, investigate later"
 - "Just try changing X and see if it works"
 - "Add multiple changes, run tests"
@@ -247,197 +193,96 @@ When you see these red flags, STOP and return to Phase 1:
 - "It's probably X, let me fix that"
 - "I don't fully understand but this might work"
 - "Pattern says X but I'll adapt it differently"
-- "Here are the main problems: [lists fixes without investigation]"
 - Proposing solutions before tracing data flow
 - **"One more fix attempt" (when already tried 2+)**
 - **Each fix reveals new problem in different place**
 
-## Human Partner Signals
+### Rule: Use advanced problem-solving methods
 
-Watch for redirection signals:
+**When:** Standard debugging phases don't yield results
 
-- "Is that not happening?" - You assumed without verifying
-- "Will it show us...?" - You should have added evidence gathering
-- "Stop guessing" - You're proposing fixes without understanding
-- "Ultrathink this" - Question fundamentals, not just symptoms
-- "We're stuck?" (frustrated) - Your approach isn't working
+**Then:** Apply advanced frameworks
 
-**Response to signals:** STOP. Return to Phase 1.
+**Frameworks:**
+- TRIZ (Theory of Inventive Problem Solving) - 40 Inventive Principles
+- Theory of Constraints - Five Focusing Steps
+- Systems Thinking - Causal Loop Diagrams, Stock and Flow
 
-## Common Rationalizations
+## Process
 
-| Excuse | Reality |
-|--------|---------|
-| "Issue is simple, don't need process" | Simple issues have root causes too. Process is fast for simple bugs. |
-| "Emergency, no time for process" | Systematic debugging is FASTER than guess-and-check thrashing. |
-| "Just try this first, then investigate" | First fix sets the pattern. Do it right from the start. |
-| "I'll write test after confirming fix works" | Untested fixes don't stick. Test first proves it. |
-| "Multiple fixes at once saves time" | Can't isolate what worked. Causes new bugs. |
-| "Reference too long, I'll adapt the pattern" | Partial understanding guarantees bugs. Read it completely. |
-| "I see the problem, let me fix it" | Seeing symptoms ≠ understanding root cause. |
-| "One more fix attempt" (after 2+ failures) | 3+ failures = architectural problem. Question pattern, don't fix again. |
+1. Phase 1: Root Cause Investigation
+   - Read error messages carefully
+   - Reproduce consistently
+   - Check recent changes
+   - Gather evidence in multi-component systems
+   - Trace data flow
 
-## Advanced Problem-Solving Methods
+2. Phase 2: Pattern Analysis
+   - Find working examples
+   - Compare against references
+   - Identify differences
+   - Understand dependencies
 
-When standard debugging phases don't yield results, apply these advanced frameworks:
+3. Phase 3: Hypothesis and Testing
+   - Form single hypothesis
+   - Test minimally
+   - Verify before continuing
+   - When you don't know: ask for help
 
-### TRIZ (Theory of Inventive Problem Solving)
+4. Phase 4: Implementation
+   - Create failing test case
+   - Implement single fix
+   - Verify fix
+   - If fix doesn't work: question architecture after 3+ failures
 
-**40 Inventive Principles for Technical Conflicts:**
+## Preconditions
 
-| Principle | Application in Debugging |
-|-----------|-------------------------|
-| **Segmentation** | Break complex problem into smaller, testable parts |
-| **Extraction** | Remove problematic component, test in isolation |
-| **Local Quality** | Optimize specific part rather than whole system |
-| **Asymmetry** | Introduce intentional asymmetry to identify state issues |
-| **Merger** | Combine similar bugs to find common root cause |
-| **Universality** | Use universal solution that applies to multiple related issues |
-| **Nesting** | Test component within different contexts/environments |
-| **Counterweight** | Add compensating mechanism to balance problematic behavior |
-| **Prior Counteraction** | Anticipate and prevent expected failure modes |
-| **Prior Action** | Add instrumentation before problem occurs |
-| **Cushion in Advance** | Add safety checks that catch issue early |
-| **Equipotentiality** | Simplify system state to eliminate variables |
-| **The Other Way Round** | Invert logic to test assumptions (e.g., test what should NOT happen) |
-| **Curvature** | Change linear flow to detect state transitions |
-| **Dynamicity** | Make system more dynamic to reveal hidden state issues |
-| **Partial or Excessive Actions** | Test with partial or excessive inputs to find boundaries |
-| **Another Dimension** | Look at problem from different perspective (time, space, abstraction) |
-| **Mechanical Vibration** | Introduce controlled chaos to test robustness |
-| **Periodic Action** | Use periodic checks to catch intermittent issues |
-| **Continuity of Useful Action** | Maintain state monitoring throughout execution |
-| **Skipping** | Skip certain operations to isolate problematic step |
-| **Blessing in Disguise** | Use failure as diagnostic information |
-| **Feedback** | Add extensive feedback/logging to understand behavior |
-| **Intermediary** | Insert test component between problematic parts |
-| **Self-Service** | Enable system to self-diagnose and report issues |
-| **Copying** | Clone working environment to compare with broken |
-| **Cheap Short-Living** | Use temporary test environment for quick validation |
-| **Mechanics Substitution** | Replace problematic component with alternative implementation |
-| **Pneumatics/Hydraulics** | Change flow/pressure patterns to test assumptions |
-| **Flexible Shells** | Add wrapper to test component in isolation |
-| **Porous Materials** | Add selective visibility into internal state |
-| **Color Changes** | Use visual markers to trace execution paths |
-| **Homogeneity** | Make similar components identical to eliminate variables |
-| **Discarding and Recovering** | Remove and restore components systematically |
-| **Parameter Changes** | Vary parameters to find working combination |
-| **Phase Transitions** | Change system phase (e.g., cold vs warm start) |
-| **Thermal Expansion** | Stress test by expanding scope/complexity |
-| **Strong Oxidants** | Introduce aggressive test conditions |
-| **Inert Atmosphere** | Test in minimal, controlled environment |
-| **Composite Materials** | Combine multiple partial solutions |
+Before using this skill, verify:
 
-**Contradiction Matrix Approach:**
-1. Identify conflicting parameters (e.g., speed vs accuracy)
-2. Use TRIZ matrix to find applicable principles
-3. Apply suggested principles creatively to your debugging context
+- An issue exists that needs investigation
+- Error messages, logs, or symptoms are accessible
+- Codebase is available for analysis
+- Iron Law acknowledged: NO FIXES WITHOUT ROOT CAUSE INVESTIGATION
 
-### Theory of Constraints
+## Postconditions
 
-**Five Focusing Steps for System Bottlenecks:**
+After completing this skill, verify:
 
-1. **Identify the Constraint**
-   - What's limiting system performance?
-   - Where is the bottleneck?
-   - Which component is the weak link?
+- Root cause is identified and documented
+- Fix addresses the root cause, not symptoms
+- Verification confirms the fix works
+- No new bugs introduced
+- Success criteria from Phase 4 met
 
-2. **Exploit the Constraint**
-   - Get maximum value from existing constraint
-   - Optimize around the bottleneck
-   - Ensure constraint is always working
+## Success Metrics
 
-3. **Subordinate Everything Else**
-   - Align all other components to support constraint
-   - Don't over-optimize non-constraints
-   - Synchronize system to constraint's pace
+This skill is successful when:
 
-4. **Elevate the Constraint**
-   - If constraint still limits, increase its capacity
-   - Add resources to constraint
-   - Improve constraint performance
+- First-time fix rate: 95% (vs 40% without systematic approach)
+- Time to fix: 15-30 minutes (vs 2-3 hours of thrashing)
+- Root cause understood before any fix attempt
+- Fix verified with evidence before claiming completion
+- No regression or new issues introduced
 
-5. **Repeat**
-   - Once constraint is broken, find new constraint
-   - Continuous improvement cycle
+## Common Situations
 
-**Thinking Processes:**
-- **Current Reality Tree**: Map cause-effect relationships to find root cause
-- **Evaporating Cloud**: Resolve conflicts by finding underlying assumptions
-- **Future Reality Tree**: Verify solution won't create new problems
-- **Prerequisite Tree**: Identify obstacles and intermediate goals
-- **Transition Tree**: Plan step-by-step implementation
+**Situation:** Multi-component system error
 
-**When to Use Theory of Constraints:**
-- Performance bottlenecks
-- System throughput issues
-- Resource contention problems
-- Complex system interactions
-- Multi-component coordination failures
+**Pattern:**
+- When: System has multiple components (CI → build → signing)
+- Then: Add diagnostic instrumentation at each boundary
+- Verify: Log data entering and exiting each component
 
-### Systems Thinking
+**Situation:** Error deep in call stack
 
-**Causal Loop Diagrams:**
-- Map feedback loops in system
-- Identify reinforcing (+) and balancing (-) loops
-- Find leverage points for intervention
+**Pattern:**
+- When: Error location deep in stack trace
+- Then: Trace data flow up to source
+- Verify: Fix at source, not at symptom
 
-**Stock and Flow:**
-- Understand accumulations (stock) and rates of change (flow)
-- Identify where delays cause issues
-- Find points where system behavior changes
+**Situation:** 3+ fixes failed
 
-**Mental Models:**
-- Uncover hidden assumptions
-- Challenge conventional thinking
-- Find alternative perspectives
-
-**Leverage Points:**
-- Places to intervene in system
-- Deep leverage points (high impact, hard to change)
-- Shallow leverage points (low impact, easy to change)
-
-**When to Use Systems Thinking:**
-- Complex, interconnected problems
-- Recurring issues that keep returning
-- System-wide performance problems
-- Emergent behaviors
-- Unintended consequences
-
-## Framework Selection Guide
-
-| Problem Type | Recommended Framework |
-|--------------|----------------------|
-| Technical conflict/incompatibility | TRIZ (40 Principles) |
-| System bottleneck/throughput | Theory of Constraints (5 Focusing Steps) |
-| Complex system with feedback loops | Systems Thinking (Causal Loops) |
-| Root cause in deep call stack | Root Cause Tracing (Phase 1) |
-| Pattern mismatch vs reference | Pattern Analysis (Phase 2) |
-| Unknown cause, multiple variables | Hypothesis Testing (Phase 3) |
-| 3+ fixes failed | Question Architecture (Phase 4, Step 5) |
-
-## Supporting Files
-
-The skill references these supporting techniques:
-
-- **root-cause-tracing.md** - Complete backward tracing technique for bugs deep in call stack
-- **defense-in-depth.md** - Four-layer validation pattern
-- **condition-based-waiting.md** - Replacing arbitrary timeouts with condition polling
-- **condition-based-waiting-example.ts** - Complete implementation with domain-specific helpers
-- **find-polluter.sh** - Bisection script to identify which test causes pollution
-
-## Quick Reference
-
-| Phase | Key Activities | Success Criteria |
-|-------|---------------|------------------|
-| **1. Root Cause** | Read errors, reproduce, check changes, gather evidence | Understand WHAT and WHY |
-| **2. Pattern** | Find working examples, compare | Identify differences |
-| **3. Hypothesis** | Form theory, test minimally | Confirmed or new hypothesis |
-| **4. Implementation** | Create test, fix, verify | Bug resolved, tests pass |
-
-## Related Skills
-
-- **opsis-mode-enforcer** - For mode enforcement rules and Iron Laws
-- **opsis-verification-gate** - For verification procedures and evidence requirements
-- **opsis-test-driven-development** - For creating failing test case (Phase 4, Step 1)
-- **opsis-verification-before-completion** - Verify fix worked before claiming success
+**Pattern:**
+- When: Multiple fix attempts unsuccessful
+- Then: STOP and question architecture
+- Verify: Discuss with human before more fixes

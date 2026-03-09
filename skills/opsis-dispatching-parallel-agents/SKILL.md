@@ -1,6 +1,6 @@
 ---
 name: opsis-dispatching-parallel-agents
-description: Parallel execution engine for independent tasks across different domains. Use when implementing features with 3+ independent tasks that can execute simultaneously, or debugging multiple independent failures. Enables parallel concurrent execution for near-linear time savings.
+description: "Parallel execution engine for independent tasks across different domains. Use when implementing features with 3+ independent tasks that can execute simultaneously, or debugging multiple independent failures. Enables parallel concurrent execution for near-linear time savings."
 license: Apache-2.0
 ---
 
@@ -8,114 +8,89 @@ license: Apache-2.0
 
 Parallel execution engine for coordinating multiple AI agents working on independent tasks simultaneously.
 
-## Core Value Proposition
-
-Transform sequential multi-hour work into parallel concurrent execution, achieving near-linear time savings for any independent task domains.
-
 ## When to Use
 
-**Use opsis-dispatching-parallel-agents when:**
+Use this skill when:
 
-### Implementation Tasks
 - 3+ independent implementation tasks from a plan
 - Tasks span different files, modules, or subsystems
 - Tasks have no dependencies or shared state
 - Feature work requiring parallel execution
-
-### Debugging Tasks
-- Multiple failures across different test files
-- Multiple failures across different subsystems
+- Multiple failures across different test files or subsystems
 - Failures are truly independent (no shared state, no dependencies)
-- Problems can be understood and fixed without context from others
 
-**Do NOT use when:**
+Do not use when:
+
 - Single task (use direct execution)
-- Related tasks with shared code paths (execute together or investigate relationship first)
+- Related tasks with shared code paths (execute together)
 - Tasks have dependencies (use sequential execution)
 - Unclear independence (assess first)
 
-## Tool Selection
+## Rules
 
-For the authoritative rule on subagent vs subtask usage, see **using-opsis**:
-- **Rule of Thumb:** Use subagents for research and decisions. Use subtasks for executing work.
+### Rule: Verify independence before parallel dispatch
 
-**This skill uses `tasks---create_task`** because:
-- Multiple agents need to work independently on different domains
-- Parallel execution requires task tracking for each agent
-- Parent-child relationships enable monitoring of all parallel tasks
-- Need to collect results from multiple independent tasks
-- Each agent is executing work on a specific task domain
+**When:** Considering parallel execution
 
-**Use Cases:**
-- **Implementation:** Each agent implements a feature task independently
-- **Debugging:** Each agent investigates and fixes a failure independently
+**Then:** Verify all independence criteria
 
-## Decision Framework
-
-### 1. Independence Assessment
-
-**Assess whether multiple tasks are independent or related.**
-
-**Decision criteria:**
+**Independence criteria:**
 - Different files, modules, or subsystems
 - Separate code paths with no overlap
 - No shared state between task domains
 - Completing one task does not affect others
 - No dependencies between tasks
 
-**Output:** Binary decision (parallel or sequential) with rationale
+**If any criterion fails:**
+**Then:** Use sequential execution
 
-### 2. Parallel Readiness Check
+### Rule: Check parallel execution safety
 
-**Verify parallel execution is safe.**
+**When:** Planning parallel dispatch
 
-**Checks:**
+**Then:** Verify no resource conflicts
+
+**Safety checks:**
 - No concurrent resource conflicts (same files, same external services)
 - No dependency chains between tasks
 - Available agent capacity (system limits)
 
-**Output:** Go/no-go decision for parallel dispatch
+**If safety check fails:**
+**Then:** Use sequential execution
 
-### 3. Domain Grouping
+### Rule: Create focused agent prompts
 
-**Group related tasks into coherent work domains.**
+**When:** Creating agent prompts
 
-**Process:**
-1. Cluster tasks by file/subsystem or feature area
-2. Verify independence between clusters
-3. Assign each cluster to one agent
+**Then:** Specify single task domain
 
-**Output:** Mapped domains to agents
-
-## Agent Prompt Construction
-
-### Focused Scope Definition
-
-Each agent prompt must specify a single task domain.
-
-**Components:**
+**Prompt components:**
 - Specific file(s) to work on
-- Clear goal statement (e.g., "Implement the user authentication feature" or "Fix these failing tests")
+- Clear goal statement
 - Scope boundaries (what to include/exclude)
 
-**Constraint:** Maximum one cohesive task group per agent (e.g., one feature, one test file, or one subsystem)
+**Constraint:** Maximum one cohesive task group per agent
 
-### Self-Contained Context
+### Rule: Include self-contained context
 
-Each agent prompt must include all necessary context.
+**When:** Creating agent prompts
+
+**Then:** Include all necessary context
 
 **Required elements:**
 - Task requirements or error messages (sanitized)
 - Relevant specifications or test descriptions
 - Relevant code snippets (if applicable)
-- Expected vs actual behavior (for debugging) or implementation details (for features)
+- Expected vs actual behavior (for debugging)
 - Any known constraints or requirements
 
-**No external references or "see other file" instructions.**
+**Never:** Use external references or "see other file" instructions
 
-### Specific Output Requirements
+### Rule: Specify output requirements
 
-Each agent prompt must specify expected output format.
+**When:** Creating agent prompts
+
+**Then:** Specify expected output format
 
 **Required elements:**
 - Summary of work completed
@@ -124,120 +99,50 @@ Each agent prompt must specify expected output format.
 - Verification steps taken
 - Any remaining issues or concerns
 
-**Output format:** Structured markdown or JSON
+### Rule: Use executeInBackground for parallel execution
 
-### Constraint Specification
+**When:** Creating parallel agent tasks
 
-Each agent prompt must include explicit constraints.
+**Then:** Always set executeInBackground to true
 
-**Constraint categories:**
-- Code modification bounds (files allowed to edit)
-- Approach restrictions (e.g., "do not increase timeouts", "follow existing patterns")
-- Dependency constraints (must use existing patterns)
-- Testing requirements (must run specific tests)
+**Critical requirement:**
+- executeInBackground MUST be true for this skill
+- Enables concurrent execution
+- Achieves near-linear time savings
 
-## Parallel Execution Management
+**Never:** Use executeInBackground: false
 
-### Task Creation
+### Rule: Monitor all parallel tasks
 
-Spawn parallel agent tasks using the task system.
+**When:** Parallel tasks are executing
 
-**For each domain:**
-1. Create task via `tasks---create_task` with the following parameters:
-   - `prompt` (string, required): The constructed agent prompt with focused scope and self-contained context
-   - `parentTaskId` (string, required): Current task ID to create subtask relationship for grouping
-   - `execute` (boolean, required): `true` to execute immediately
-   - `executeInBackground` (boolean, required): **ALWAYS `true` for this skill** - enables concurrent execution
-   - `agentProfileId` (string, optional): For specialized subagents
-2. Set task name reflecting domain scope
-3. Provide constructed agent prompt as initial message
-
-**🚨 CRITICAL: executeInBackground MUST be true**
-
-This skill requires parallel execution because:
-1. **Tasks are independent:** Each agent works on a completely separate task domain
-2. **No coordination needed:** Agents don't need to communicate or wait for each other
-3. **Time savings critical:** Parallel execution achieves near-linear time savings
-4. **Parent monitors all:** The parent task dispatches all tasks, then monitors all of them simultaneously
-
-**Never use `executeInBackground: false` with this skill.** It would defeat the purpose of parallel execution and provide no time savings.
-
-**Constraint:** All tasks created before any execute
-
-**Parallel Execution Pattern:**
-- Create ALL parallel tasks first using `tasks---create_task` with `executeInBackground: true`
-- Do not wait between task creations
-- All tasks will execute concurrently once created
-- Critical: `executeInBackground: true` enables concurrent execution
-
-**Example: Creating Parallel Tasks**
-```javascript
-// Create all parallel tasks first
-tasks---create_task(
-  prompt: "<Agent 1 prompt with focused scope and self-contained context>",
-  parentTaskId: "<current_task_id>",
-  execute: true,
-  executeInBackground: true
-)
-
-tasks---create_task(
-  prompt: "<Agent 2 prompt with focused scope and self-contained context>",
-  parentTaskId: "<current_task_id>",
-  execute: true,
-  executeInBackground: true
-)
-
-tasks---create_task(
-  prompt: "<Agent 3 prompt with focused scope and self-contained context>",
-  parentTaskId: "<current_task_id>",
-  execute: true,
-  executeInBackground: true
-)
-
-// All tasks now executing in parallel
-```
-
-### Task Monitoring
-
-Track status of parallel agent tasks.
+**Then:** Track status of all tasks
 
 **Monitoring workflow:**
-- Store task IDs returned from `tasks---create_task`
-- Use `tasks---get_task(taskId)` to check each task's status
+- Store task IDs returned from task creation
+- Use tasks---get_task to check each task's status
 - Poll periodically until all tasks complete
 - Track which tasks are IN_PROGRESS, DONE, or FAILED
 - Monitor message count to gauge progress
 
-**Monitoring capabilities:**
-- Real-time status check via `tasks---get_task`
-- Progress tracking (task state, message count)
-- Error detection and reporting
-- No blocking on individual task completion
+### Rule: Collect results from all agents
 
-### Result Collection
+**When:** All parallel tasks complete
 
-Collect results from all completed agent tasks.
+**Then:** Collect and consolidate results
 
 **Collection workflow:**
-- Use `tasks---get_task_message(taskId, messageIndex: -1)` to get final output from each task
+- Use tasks---get_task_message to get final output from each task
 - Collect all results into consolidated report
 - Organize results by domain/task
 - Present to user with conflict detection if applicable
 - Summarize changes made by each agent
 
-**Collection process:**
-1. Poll task status until all complete
-2. Retrieve final messages from each task using `tasks---get_task_message`
-3. Extract summaries and changes
-4. Organize results by domain
+### Rule: Detect conflicts before integration
 
-**Output:** Consolidated results document
+**When:** All agents complete
 
-## Integration and Verification
-
-### Conflict Detection
-
-Detect potential conflicts between agent changes.
+**Then:** Check for conflicts
 
 **Conflict types:**
 - Same file modified by multiple agents
@@ -246,313 +151,86 @@ Detect potential conflicts between agent changes.
 
 **Detection method:** File-level and function-level change analysis
 
-### Verification Execution
+### Rule: Run verification after integration
 
-Run verification after agent tasks complete.
+**When:** Agent tasks complete
+
+**Then:** Run full verification
 
 **Verification steps:**
-1. Review all agent summaries
-2. Check for conflicts
-3. Run full test suite
-4. Perform spot checks on critical paths
-5. Validate no regressions introduced
+- Review all agent summaries
+- Check for conflicts
+- Run full test suite
+- Perform spot checks on critical paths
+- Validate no regressions introduced
 
-### Integration Guidance
+## Process
 
-Provide guidance for integrating agent changes.
+1. Assess task independence
+2. Verify parallel execution safety
+3. Group related tasks into coherent work domains
+4. Create focused agent prompts for each domain
+5. Create all parallel tasks with executeInBackground: true
+6. Monitor all parallel tasks to completion
+7. Collect results from all completed tasks
+8. Detect conflicts between agent changes
+9. Run verification after integration
+10. Provide integration guidance if conflicts detected
 
-**When conflicts detected:**
-1. Highlight conflicting changes
-2. Suggest resolution approaches
-3. Recommend manual review
+## Preconditions
 
-**When no conflicts:**
-1. Confirm safe integration
-2. Provide integration order (if dependencies exist)
-3. Recommend final verification steps
+Before using this skill, verify:
 
-## Common Mistakes and Anti-Patterns
+- 3+ independent tasks exist
+- Tasks have no dependencies or shared state
+- No concurrent resource conflicts
+- Available agent capacity
 
-### Prompt Construction Mistakes
+## Postconditions
 
-**Anti-Pattern 1: Too Broad Scope**
-- ❌ "Implement the entire authentication system"
-- ✅ "Implement the user login API endpoint"
-- Impact: Agent gets lost, unclear focus, wasted time
+After completing this skill, verify:
 
-**Anti-Pattern 2: Missing Context**
-- ❌ "Fix the race condition" or "Add the feature"
-- ✅ "Fix timing issues in agent-tool-abort.test.ts" or "Implement JWT token validation in auth service"
-- Impact: Agent doesn't know where to start, requires clarification
-
-**Anti-Pattern 3: No Constraints**
-- ❌ "Make it work"
-- ✅ "Implement only this endpoint, do not modify other services. Follow existing patterns."
-- Impact: Agent might refactor everything, unnecessary changes
-
-**Anti-Pattern 4: Vague Output Expectations**
-- ❌ "Fix it and tell me what you did"
-- ✅ "Return: Summary of work completed, list of files modified, verification steps taken"
-- Impact: Unclear what changed, difficult to review
-
-### Execution Mistakes
-
-**Anti-Pattern 5: Related Tasks Treated as Independent**
-- ❌ Dispatch parallel agents for tasks in same code path
-- ✅ Investigate relationship first, combine related tasks
-- Impact: Redundant work, potential conflicts, wasted time
-
-**Anti-Pattern 6: Sequential Task Creation**
-- ❌ Create and execute tasks one at a time
-- ✅ Create all tasks first, then execute in parallel
-- Impact: No actual parallelization, sequential execution time
-
-**Anti-Pattern 7: No Conflict Detection**
-- ❌ Integrate changes without checking for conflicts
-- ✅ Analyze changes for conflicts before integration
-- Impact: Overwrites, broken code, difficult to debug
-
-**Anti-Pattern 8: Skipping Verification**
-- ❌ Trust agent results without verification
-- ✅ Run full test suite and spot checks
-- Impact: Regressions, systematic errors, false confidence
-
-### Decision Framework Mistakes
-
-**Anti-Pattern 9: Parallel When Not Safe**
-- ❌ Dispatch parallel agents for shared state problems
-- ✅ Use sequential execution when dependencies exist
-- Impact: Race conditions, corrupted state, unreliable results
-
-**Anti-Pattern 10: Sequential When Parallel Possible**
-- ❌ Execute independent tasks sequentially
-- ✅ Use parallel dispatch for truly independent tasks
-- Impact: Wasted time, extended execution timeline
-
-## Usage Examples
-
-### Example 1: Parallel Feature Implementation
-
-**Scenario:** 3 independent features from an implementation plan
-
-**Tasks:**
-- Task 1: Implement user authentication API
-- Task 2: Implement data export functionality
-- Task 3: Implement email notification system
-
-**Decision:** Independent domains - auth separate from export separate from notifications
-
-**Agent 1 Prompt:**
-```markdown
-Implement the user authentication API in src/api/auth/:
-
-Requirements:
-- POST /auth/login - authenticate user with email/password
-- POST /auth/logout - clear session
-- GET /auth/me - get current user info
-- Use JWT tokens for authentication
-- Follow existing error handling patterns in src/api/
-
-Your task:
-1. Create the auth API endpoints
-2. Integrate with existing user service
-3. Add proper error handling
-4. Document the API
-
-Do NOT modify other services or APIs.
-
-Return: Summary of implementation, files created/modified, verification steps taken.
-```
-
-**Agent 2 Prompt:**
-```markdown
-Implement data export functionality in src/export/:
-
-Requirements:
-- Export user data to CSV format
-- Export order data to JSON format
-- Support filtering and date ranges
-- Follow existing service patterns in src/services/
-
-Your task:
-1. Create export service
-2. Add export endpoints to API
-3. Add proper validation
-4. Document the export formats
-
-Do NOT modify auth or other services.
-
-Return: Summary of implementation, files created/modified, verification steps taken.
-```
-
-**Agent 3 Prompt:**
-```markdown
-Implement email notification system in src/notifications/:
-
-Requirements:
-- Send welcome emails on signup
-- Send order confirmation emails
-- Use existing email service in src/email/
-- Follow existing notification patterns
-
-Your task:
-1. Create notification service
-2. Integrate with auth and orders services
-3. Add email templates
-4. Test email sending
-
-Do NOT modify other services.
-
-Return: Summary of implementation, files created/modified, verification steps taken.
-```
-
-**Results:**
-- Agent 1: Created auth API with JWT authentication
-- Agent 2: Created export service with CSV/JSON support
-- Agent 3: Created notification service with email templates
-
-**Integration:** All implementations independent, no conflicts, full feature set complete
-
-**Time Saved:** 3 features implemented in parallel vs sequentially
-
-### Example 2: Parallel Debugging (Original Use Case)
-
-**Scenario:** 6 test failures across 3 files after major refactoring
-
-**Failures:**
-- `agent-tool-abort.test.ts`: 3 failures (timing issues)
-- `batch-completion-behavior.test.ts`: 2 failures (tools not executing)
-- `tool-approval-race-conditions.test.ts`: 1 failure (execution count = 0)
-
-**Decision:** Independent domains - abort logic separate from batch completion separate from race conditions
-
-**Agent 1 Prompt:**
-```markdown
-Fix the 3 failing tests in src/agents/agent-tool-abort.test.ts:
-
-1. "should abort tool with partial output capture" - expects 'interrupted at' in message
-2. "should handle mixed completed and aborted tools" - fast tool aborted instead of completed
-3. "should properly track pendingToolCount" - expects 3 results but gets 0
-
-These are timing/race condition issues. Your task:
-
-1. Read the test file and understand what each test verifies
-2. Identify root cause - timing issues or actual bugs?
-3. Fix by:
-   - Replacing arbitrary timeouts with event-based waiting
-   - Fixing bugs in abort implementation if found
-   - Adjusting test expectations if testing changed behavior
-
-Do NOT just increase timeouts - find the real issue.
-
-Return: Summary of what you found and what you fixed.
-```
-
-**Agent 2 Prompt:** [Similar structure for batch-completion-behavior.test.ts]
-
-**Agent 3 Prompt:** [Similar structure for tool-approval-race-conditions.test.ts]
-
-**Results:**
-- Agent 1: Replaced timeouts with event-based waiting
-- Agent 2: Fixed event structure bug (threadId in wrong place)
-- Agent 3: Added wait for async tool execution to complete
-
-**Integration:** All fixes independent, no conflicts, full suite green
-
-**Time Saved:** 3 problems solved in parallel vs sequentially
-
-## Key Benefits
-
-1. **Parallelization Efficiency** - Multiple tasks happen simultaneously, achieving near-linear time savings
-2. **Focused Attention** - Each agent has narrow scope, reducing cognitive load and context switching
-3. **Independence Guarantee** - Agents work on isolated domains, eliminating interference and coordination overhead
-4. **Scalable Approach** - Pattern extends from 2 to N agents, accommodating increasing task counts
-5. **Quality Preservation** - Focused prompts and constraints maintain work quality while increasing speed
-6. **Resource Optimization** - Maximizes utilization of available AI agent capabilities
+- All parallel tasks completed
+- Results collected from all agents
+- Conflicts detected and reported
+- Verification executed
+- Integration guidance provided
 
 ## Success Metrics
 
-### Quantitative Metrics
-- **Time Savings:** ≥50% reduction in execution time for 3+ independent tasks
-- **Parallel Efficiency:** Actual parallel time ≤ (sequential time / N) + 20% overhead
-- **Success Rate:** ≥90% of parallel dispatches achieve complete resolution
-- **Conflict Rate:** ≤10% of parallel dispatches detect conflicts requiring manual resolution
+This skill is successful when:
 
-### Qualitative Metrics
-- **User Satisfaction:** Positive feedback on clarity and effectiveness
-- **Adoption Rate:** Increasing usage across teams over time
-- **Error Reduction:** Fewer regressions introduced during parallel work
-- **Knowledge Transfer:** Improved understanding of parallel agent capabilities
+- Time savings: ≥50% reduction in execution time for 3+ independent tasks
+- Parallel efficiency: Actual parallel time ≤ (sequential time / N) + 20% overhead
+- Success rate: ≥90% of parallel dispatches achieve complete resolution
+- Conflict rate: ≤10% of parallel dispatches detect conflicts requiring manual resolution
 
-## Risks and Mitigations
+## Common Situations
 
-### Risk 1: False Independence Assessment
+**Situation:** Parallel feature implementation
 
-**Description:** Incorrectly treating related tasks as independent
+**Pattern:**
+- When: 3+ independent features from implementation plan
+- Then: Create agent for each feature domain
+- Verify: All agents complete without conflicts
 
-**Impact:** Redundant work, conflicting fixes, wasted time
+**Situation:** Parallel debugging
 
-**Mitigation:**
-- Require clear evidence of independence before parallel dispatch
-- Provide detailed rationale for decision
-- Allow user override with explicit confirmation
+**Pattern:**
+- When: Multiple independent test failures
+- Then: Create agent for each failure domain
+- Verify: All fixes resolve issues without conflicts
 
-### Risk 2: Agent Prompt Ambiguity
+**Situation:** Resource conflict detected
 
-**Description:** Insufficient context or unclear constraints in prompts
+**Pattern:**
+- When: Same file modifications across tasks
+- Then: Switch to sequential execution
+- Verify: No conflicts during execution
 
-**Impact:** Agent requests clarification, delays execution
+**Situation:** Dependencies detected
 
-**Mitigation:**
-- Checklist of required prompt elements
-- Automated validation before task creation
-- Template-based prompt construction
-
-### Risk 3: Integration Conflicts
-
-**Description:** Agents make conflicting changes to shared code
-
-**Impact:** Integration failure, requires manual resolution
-
-**Mitigation:**
-- File-level and function-level change analysis
-- Pre-integration conflict report
-- Manual review required for conflicts
-
-### Risk 4: Systematic Agent Errors
-
-**Description:** Multiple agents make similar mistakes (e.g., same bad pattern)
-
-**Impact:** Widespread issues, difficult to identify
-
-**Mitigation:**
-- After integration, perform focused spot checks
-- Look for systematic patterns across agent changes
-- Run full test suite to catch regressions
-
-## Verification Checklist
-
-Before accepting parallel agent results:
-
-- [ ] Reviewed all agent summaries
-- [ ] Checked for file-level conflicts
-- [ ] Checked for function-level conflicts
-- [ ] Ran full test suite
-- [ ] Performed spot checks on critical paths
-- [ ] Validated no regressions introduced
-- [ ] Confirmed all original tasks completed
-- [ ] Documented any remaining issues
-
-## Related Skills
-
-- **opsis-systematic-debugging** - Each agent should use systematic debugging for debugging tasks
-- **opsis-verification-before-completion** - Verify integration before claiming completion
-- **opsis-two-stage-review-execution** - Alternative for sequential execution with reviews
-
-## Core Principles
-
-1. **Independence First:** Only dispatch parallel agents when tasks are truly independent
-2. **Focused Scope:** Each agent receives a single, well-defined task domain
-3. **Self-Contained Context:** All necessary information included in each agent's prompt
-4. **Specific Output:** Clear expectations for what each agent must return
-5. **Controlled Constraints:** Explicit boundaries on what agents can and cannot modify
+**Pattern:**
+- When: Tasks require completion in specific order
+- Then: Use sequential execution
+- Verify: Tasks complete in correct order

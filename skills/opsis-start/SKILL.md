@@ -1,45 +1,17 @@
 ---
 name: opsis-start
-description: Conversational discovery for vague ideas. Ask clarifying questions one at a time, explore requirements naturally, track problem statement/users/features/constraints.
+description: "Conversational discovery for vague ideas. Ask clarifying questions one at a time, explore requirements naturally, track problem statement/users/features/constraints."
 license: Apache-2.0
 ---
 
 # Start
 
-Conversational discovery for vague ideas through iterative discussion. Use when ideas are vague and need refinement through natural dialogue before formal planning.
-
-## Core Principles
-
-**"Yes, and..." Methodology**
-- Build on the user's ideas, never dismiss
-- Ask one question at a time - don't overwhelm with multiple questions
-- Track requirements silently - Problem, users, features, constraints, success criteria
-- Stay conversational - Not an interrogation
-- Defer judgment - Explore ideas naturally before formalizing
-
-## Mode Awareness
-
-**Planning Mode (Primary)**
-- opsis-start operates in Planning Mode
-- Gather requirements through conversational exploration
-- Do NOT write code during requirements discovery
-- Maintain conversation context and flow
-
-**Mode Declaration**
-Follow the standard mode declaration format from opsis-mode-enforcer:
-
-```markdown
-**OPSIS MODE: Planning**
-Mode: planning
-Purpose: Conversational discovery and requirements exploration
-Implementation: BLOCKED - No code generation during requirements gathering
-```
-
-See opsis-mode-enforcer for complete mode enforcement details and Iron Laws.
+Conversational discovery for vague ideas through iterative discussion.
 
 ## When to Use
 
-Use opsis-start when:
+Use this skill when:
+
 - Ideas are vague or underdeveloped
 - User wants to explore through natural conversation
 - Requirements need discovery through dialogue
@@ -47,86 +19,80 @@ Use opsis-start when:
 - Target users are undefined
 - Features and scope need exploration
 
-**Transition to other skills:**
-- Requirements become clear → opsis-prd for structured planning
-- Ready to document → opsis-summarize to extract mini-PRD
-- Need creative ideation → opsis-brainstorming for solution generation
+Do not use when:
 
-## Approach
+- Requirements are clear enough for structured planning
+- User wants to start implementation immediately
 
-### Begin with Friendly Introduction
+## Rules
 
-Start the conversation naturally:
-- Welcome the user and their idea
-- Set expectations for conversational exploration
-- Explain you'll ask questions one at a time
+### Rule: Use "Yes, and..." methodology
 
-### Explore Ideas Naturally
+**When:** Conversing with user
 
-1. **Ask one question at a time** - Don't overwhelm with multiple questions
-2. **Track requirements silently** - Maintain mental notes of:
-   - Problem statement
-   - Target users
-   - Core features
-   - Technical requirements
-   - Architecture preferences
-   - Success criteria
-   - Constraints and scope
-3. **Build on their ideas** - Use "Yes, and..." methodology
-4. **Stay conversational** - Not an interrogation
+**Then:** Build on user's ideas, never dismiss
 
-### Suggested Question Flow
+**Methodology:**
+- Ask one question at a time - don't overwhelm
+- Track requirements silently (Problem, users, features, constraints, success criteria)
+- Stay conversational - Not an interrogation
+- Defer judgment - Explore ideas naturally before formalizing
 
-Start with the problem and goal, then explore naturally:
+### Rule: Ask one question at a time
 
-1. **What are we building and why?**
-   - What problem are you trying to solve?
-   - What's the goal or outcome you want to achieve?
+**When:** Exploring requirements
 
-2. **Who is this for?**
-   - Who are the target users?
-   - What do they need or want?
+**Then:** Ask single question, wait for answer, then proceed
 
-3. **What should it do?**
-   - What are the core features?
-   - What's the minimum viable functionality?
+**Never:** Ask multiple questions at once
 
-4. **How should it work?**
-   - Any technical preferences or constraints?
-   - Architecture or design considerations?
+### Rule: Track requirements silently
 
-5. **What defines success?**
-   - How will we know if this is working?
-   - What are the success criteria?
+**When:** Conversing
 
-6. **What are we NOT doing?**
-   - What's explicitly out of scope?
+**Then:** Maintain mental notes of tracking points
 
-## Key Tracking Points
+**Tracking points:**
+- Problem statement
+- Target users
+- Core features
+- Technical requirements
+- Architecture preferences
+- Success criteria
+- Constraints and scope
 
-Maintain silent tracking of these elements throughout the conversation:
+### Rule: Suggested question flow
 
-- **Problem statement** - What pain point or opportunity?
-- **Target users** - Who will use this solution?
-- **Core features** - What functionality is essential?
-- **Technical requirements** - Stack, integrations, constraints
-- **Architecture preferences** - Design patterns, structure
-- **Success criteria** - How to measure success
-- **Constraints and scope** - What's in/out of bounds
+**When:** Starting conversation
 
-## Complexity Management
+**Then:** Start with problem and goal, explore naturally
 
-### Multi-Topic Detection
+**Suggested flow:**
+1. What are we building and why? (problem and goal)
+2. Who is this for? (target users)
+3. What should it do? (core features)
+4. How should it work? (technical preferences)
+5. What defines success? (success criteria)
+6. What are we NOT doing? (out of scope)
 
-When 3+ distinct topics are detected in the conversation, suggest focusing:
+### Rule: Manage multi-topic complexity
 
-- **Focus on one** - Explore one topic thoroughly before moving to others
-- **Continue multi-topic** - Track all topics but acknowledge complexity
-- **Create separate sessions** - Suggest separate conversations for each major topic
+**When:** 3+ distinct topics detected
 
-### Scope Creep Signals
+**Then:** Suggest focusing
 
-Watch for these indicators that scope is expanding:
+**Options:**
+- Focus on one - explore one topic thoroughly
+- Continue multi-topic - track all but acknowledge complexity
+- Create separate sessions - separate conversations for each major topic
+
+### Rule: Detect and manage scope creep
+
+**When:** Scope expanding
+
+**Then:** Watch for indicators and manage
+
+**Scope creep signals:**
 - Features growing beyond original problem
 - Requirements contradicting earlier statements
 - "Must-haves" increasing over time
@@ -137,9 +103,13 @@ Watch for these indicators that scope is expanding:
 - Suggest versioning (v1 with X, v2 adds Y)
 - Explicitly mark items as out of scope
 
-### Complexity Threshold
+### Rule: Handle complexity threshold
 
-When conversation reaches high complexity:
+**When:** High complexity reached
+
+**Then:** Suggest next steps
+
+**Complexity threshold:**
 - >15 exchanges without clear direction
 - 5+ features being discussed simultaneously
 - Multiple tech stacks or approaches mentioned
@@ -149,97 +119,71 @@ When conversation reaches high complexity:
 - Switch to opsis-prd for structured planning
 - Use opsis-summarize to extract mini-PRD
 
-## Activation Logging
+## Process
 
-When this skill is activated, log:
-
-```
-ACTIVATED: opsis-start
-Purpose: Conversational discovery for [idea description]
-Mode: Planning
-Tracking: Problem, users, features, constraints, success criteria
-```
+1. Begin with friendly introduction
+2. Ask one question at a time
+3. Track requirements silently
+4. Build on user's ideas with "Yes, and..."
+5. Maintain conversational flow
+6. Detect multi-topic complexity
+7. Manage scope creep
+8. Handle complexity threshold
+9. Transition to opsis-prd or opsis-summarize when ready
 
 ## Preconditions
 
-Before invoking this skill:
-1. User has a vague or underdeveloped idea
-2. Requirements need discovery through dialogue
-3. No formal PRD or planning document exists
-4. User is open to conversational exploration
+Before using this skill, verify:
+
+- User has a vague or underdeveloped idea
+- Requirements need discovery through dialogue
+- No formal PRD or planning document exists
+- User is open to conversational exploration
 
 ## Postconditions
 
-After completing this skill:
-1. Problem statement is clear and articulated
-2. Target users are identified
-3. Core features are understood
-4. Technical requirements are known
-5. Success criteria are defined
-6. Constraints and scope are established
-7. User is ready for structured planning (opsis-prd) or summarization (opsis-summarize)
+After completing this skill, verify:
+
+- Problem statement is clear and articulated
+- Target users are identified
+- Core features are understood
+- Technical requirements are known
+- Success criteria are defined
+- Constraints and scope are established
+- User ready for structured planning or summarization
 
 ## Success Metrics
 
 This skill is successful when:
-- **Conversational flow**: Questions asked one at a time, user never overwhelmed
-- **Requirements clarity**: Problem, users, features, and constraints are articulated
-- **Natural exploration**: Ideas evolve through "Yes, and..." methodology
-- **Transition readiness**: User has enough clarity to proceed to opsis-prd or opsis-summarize
-- **User satisfaction**: User feels heard, understood, and guided
 
-## Integration
+- Conversational flow maintained (questions asked one at a time)
+- Requirements clarity achieved (problem, users, features, constraints articulated)
+- Natural exploration achieved (ideas evolve through "Yes, and...")
+- Transition readiness achieved (user has enough clarity for next skill)
+- User satisfaction (user feels heard, understood, and guided)
 
-### Pattern Skills Used
+## Common Situations
 
-- **opsis-mode-enforcer** - Mode declaration and enforcement (Planning Mode)
-- **opsis-coordinator** - Delegation decisions for codebase analysis (if needed)
+**Situation:** User provides vague idea
 
-### Related Skills
+**Pattern:**
+- When: Idea is underdeveloped
+- Then: Use "Yes, and..." methodology, explore naturally
 
-- **osis-prd** - Structured requirements discovery for clear ideas
-- **osis-summarize** - Extract mini-PRD from conversation
-- **osis-brainstorming** - Creative ideation and solution generation
-- **using-opsis** - Meta-skill establishing workflow rules and skill invocation order
+**Situation:** Multiple topics detected
 
-### Workflow Position
+**Pattern:**
+- When: 3+ distinct topics in conversation
+- Then: Suggest focusing on one topic or separate sessions
 
-**Position in Opsis workflow:**
-1. **Exploration Phase** (opsis-start) - Conversational discovery for vague ideas
-2. **Planning Phase** (opsis-prd or opsis-summarize) - Structured requirements and planning
-3. **Implementation Phase** (opsis-implement) - Execute tasks from plans
-4. **Verification Phase** (opsis-verify) - Verify implementation against requirements
+**Situation:** Scope creeping
 
-**Entry point:** Use opsis-start when ideas are vague and need conversational exploration.
+**Pattern:**
+- When: Features growing beyond original problem
+- Then: Anchor to original problem, suggest versioning
 
-**Exit point:** Transition to opsis-prd when requirements are clear enough for structured planning, or opsis-summarize to extract mini-PRD from conversation.
+**Situation:** High complexity threshold
 
-## Quick Reference
-
-| Situation | Recommended Action |
-|-----------|-------------------|
-| Vague idea, unclear requirements | Use opsis-start for conversational discovery |
-| Clear requirements, need structure | Use opsis-prd for structured planning |
-| Need creative solutions | Use opsis-brainstorming for ideation |
-| Ready to document findings | Use opsis-summarize to extract mini-PRD |
-| Multiple topics detected | Suggest focusing on one topic or separate sessions |
-| Scope creeping | Anchor to original problem, suggest versioning |
-| High complexity threshold | Summarize and transition to opsis-prd |
-
-## Red Flags - STOP and Adjust
-
-- **Asking multiple questions at once** → Ask one question at a time
-- **Jumping to implementation** → Stay in Planning Mode, use opsis-mode-enforcer
-- **Ignoring user's ideas** → Use "Yes, and..." methodology
-- **Formalizing too early** → Keep conversation natural until ready
-- **Missing tracking** → Maintain silent notes on problem, users, features, constraints
-
-## Common Mistakes
-
-| Mistake | Correct Approach |
-|---------|------------------|
-| "Here are 5 questions to answer" | Ask one question at a time |
-| "Let's start building this" | Stay in Planning Mode, use opsis-mode-enforcer |
-| "That won't work" | Use "Yes, and..." methodology |
-| "I'll create a PRD now" | Continue conversational exploration until ready |
-| Ignoring scope creep | Anchor to original problem, suggest versioning |
+**Pattern:**
+- When: >15 exchanges, 5+ features, multiple tech stacks
+- Then: Summarize, suggest opsis-prd or opsis-summarize
