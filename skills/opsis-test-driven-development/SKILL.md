@@ -1,6 +1,6 @@
 ---
 name: opsis-test-driven-development
-description: Use when writing ANY production code - new features, bug fixes, refactoring, or behavior changes. Enforces the RED-GREEN-REFACTOR cycle with mandatory verification at each phase.
+description: "Use when writing ANY production code - new features, bug fixes, refactoring, or behavior changes. Enforces the RED-GREEN-REFACTOR cycle with mandatory verification at each phase."
 license: Apache-2.0
 ---
 
@@ -8,34 +8,40 @@ license: Apache-2.0
 
 Test-Driven Development (TDD) methodology enforcing the RED-GREEN-REFACTOR cycle with verification at each phase.
 
-## The Iron Law
-
-**NO PRODUCTION CODE WITHOUT A FAILING TEST FIRST**
-
-This is not negotiable. Violating the letter of the rules is violating the spirit of the rules.
-
 ## When to Use
 
-**Always:**
+Use this skill when:
+
 - New features
 - Bug fixes
 - Refactoring
 - Behavior changes
 
-**Exceptions (require explicit permission):**
+Do not use when:
+
 - Throwaway prototypes
 - Generated code
 - Configuration files
 
-**Anti-rationalization:** "Thinking skip TDD just this once? Stop. That's rationalization."
+## Rules
 
-## RED-GREEN-REFACTOR Cycle
+### Rule: The Iron Law
 
-### RED Phase: Write Failing Test
+**When:** Writing ANY production code
 
-**Write one minimal test showing expected behavior.**
+**Then:** Follow Iron Law
 
-Requirements:
+**Iron Law:** NO PRODUCTION CODE WITHOUT A FAILING TEST FIRST
+
+**This is not negotiable.**
+
+### Rule: RED Phase - Write failing test
+
+**When:** Starting implementation
+
+**Then:** Write one minimal test showing expected behavior
+
+**Requirements:**
 - One behavior (no "and" in test name - split it)
 - Clear name that describes behavior
 - Real code (no mocks unless unavoidable)
@@ -45,25 +51,30 @@ Requirements:
 - ✅ Good: `test("returns zero for empty input")`
 - ❌ Bad: `test("handles input and output correctly")` (vague)
 
-### Verify RED Phase: Watch It Fail
+### Rule: Verify RED Phase
 
-**MANDATORY verification step - never skip.**
+**When:** Test written
 
+**Then:** Watch it fail (MANDATORY)
+
+**Verification steps:**
 1. Run the specific test
 2. Confirm:
    - Test fails (not errors)
    - Failure message is expected
    - Fails because feature is missing, not because of typos
 
-**Error Handling:**
+**Error handling:**
 - If test passes → Fix test (it's not testing anything)
 - If test errors → Fix error until it fails correctly
 
-### GREEN Phase: Minimal Code
+### Rule: GREEN Phase - Minimal code
 
-**Write simplest code to pass the test only.**
+**When:** Test failing correctly
 
-Requirements:
+**Then:** Write simplest code to pass the test only
+
+**Requirements:**
 - Write the simplest code that makes the test pass
 - Prohibit adding features
 - Prohibit refactoring other code
@@ -74,56 +85,51 @@ Requirements:
 - ✅ Minimal: `return 0;` (to pass empty input test)
 - ❌ Over-engineered: Full implementation with error handling, logging, etc.
 
-### Verify GREEN Phase: Watch It Pass
+### Rule: Verify GREEN Phase
 
-**MANDATORY verification step.**
+**When:** Code written
 
+**Then:** Watch it pass (MANDATORY)
+
+**Verification steps:**
 1. Run the specific test
 2. Confirm:
    - Test passes
    - Other tests still pass
    - Output is pristine (no errors, no warnings)
 
-**Error Handling:**
+**Error handling:**
 - If test fails → Fix code, not test
 - If other tests fail → Fix now, don't defer
 
-### REFACTOR Phase: Clean Up
+### Rule: REFACTOR Phase - Clean up
 
-**Only after green is confirmed.**
+**When:** Green confirmed
 
+**Then:** Only after green is confirmed
+
+**REFACTOR actions:**
 - Remove duplication
 - Improve names
 - Extract helpers
 - Keep tests green
 - Don't add behavior
 
-## Verification Checklist
+### Rule: Good test criteria
 
-Before marking work complete, ALL boxes must be checked:
+**When:** Writing tests
 
-- [ ] Every new function/method has a test
-- [ ] Watched each test fail before implementing
-- [ ] Each test failed for expected reason (feature missing, not typo)
-- [ ] Wrote minimal code to pass each test
-- [ ] All tests pass
-- [ ] Output pristine (no errors, no warnings)
-- [ ] Tests use real code (mocks only if unavoidable)
-- [ ] Edge cases and errors covered
+**Then:** Follow good test criteria
 
-**If all boxes can't be checked, mandate restart with TDD.**
-
-## Good Test Criteria
-
-### Minimal
+**Minimal:**
 - One thing
 - "and" in name? Split it
 
-### Clear
+**Clear:**
 - Name describes behavior
-- Shows intent (demonstrates desired API, not obscures what code should do)
+- Shows intent (demonstrates desired API)
 
-### Comparison Table
+**Comparison Table:**
 
 | Aspect | Good Tests | Bad Tests |
 |--------|-----------|-----------|
@@ -133,10 +139,32 @@ Before marking work complete, ALL boxes must be checked:
 | Real code | Uses real code | Over-mocked |
 | Intent | Clear from reading | Requires code inspection |
 
-## Red Flags and Common Rationalizations
+### Rule: Verification checklist
 
-### Red Flags - STOP Immediately
+**When:** Marking work complete
 
+**Then:** ALL boxes must be checked
+
+**Checklist:**
+- [ ] Every new function/method has a test
+- [ ] Watched each test fail before implementing
+- [ ] Each test failed for expected reason (feature missing, not typo)
+- [ ] Wrote minimal code to pass each test
+- [ ] All tests pass
+- [ ] Output pristine (no errors, no warnings)
+- [ ] Tests use real code (mocks only if unavoidable)
+- [ ] Edge cases and errors covered
+
+**If all boxes can't be checked:**
+**Then:** Mandate restart with TDD
+
+### Rule: Red flags
+
+**When:** Seeing red flags
+
+**Then:** STOP immediately
+
+**Red flags:**
 - Code before test
 - Test after implementation
 - Test passes immediately
@@ -151,7 +179,11 @@ Before marking work complete, ALL boxes must be checked:
 - "TDD is dogmatic, I'm being pragmatic"
 - "This is different because..."
 
-### Rationalization Prevention Matrix
+### Rule: Rationalization prevention
+
+**When:** Rationalizing
+
+**Then:** Apply reality check
 
 | Excuse | Reality |
 |--------|---------|
@@ -164,73 +196,76 @@ Before marking work complete, ALL boxes must be checked:
 | "TDD is dogmatic" | TDD is pragmatic: finds bugs before commit, prevents regressions. |
 | "This is different because..." | No exceptions without explicit human permission. |
 
-## Troubleshooting
+## Process
 
-### Don't Know How to Test
+1. RED Phase: Write failing test
+   - Write one minimal test showing expected behavior
+   - Verify test fails correctly
 
-**Solution:**
-1. Write wished-for API
-2. Write assertion first
-3. Ask for help
+2. GREEN Phase: Minimal code
+   - Write simplest code to pass the test only
+   - Verify test passes
 
-### Test Too Complicated
+3. REFACTOR Phase: Clean up
+   - Remove duplication
+   - Improve names
+   - Extract helpers
+   - Keep tests green
 
-**Problem:** Design too complicated.
+## Preconditions
 
-**Solution:**
-1. Simplify interface
-2. Extract helper functions
-3. If still complex → redesign
+Before using this skill, verify:
 
-### Must Mock Everything
+- Writing production code (not prototypes, generated code, or config)
+- User wants TDD methodology
 
-**Problem:** Code too coupled.
+## Postconditions
 
-**Solution:**
-1. Use dependency injection
-2. Extract interfaces
-3. Decouple components
+After completing this skill, verify:
 
-### Test Setup Huge
-
-**Solution:**
-1. Extract helper setup functions
-2. Simplify design if still complex
-3. Question: is test doing too much?
-
-## Bug Fix Workflow
-
-1. Write failing test reproducing bug
-2. Follow TDD cycle (RED → GREEN → REFACTOR)
-3. Test proves fix and prevents regression
-
-## Testing Anti-Patterns
-
-- Testing mock behavior instead of real behavior
-- Adding test-only methods to production classes
-- Mocking without understanding dependencies
-
-## Why Order Matters
-
-- Tests written after pass immediately, proving nothing
-- Test-first forces seeing test fail, proving it tests something
-- Manual testing is ad-hoc, automated is systematic
-- Sunk cost fallacy doesn't apply - keeping unverified code is technical debt
-- TDD is pragmatic: finds bugs before commit, prevents regressions, documents behavior
-
-## Final Rule
-
-**Production code → test exists and failed first. Otherwise → not TDD.**
-
-## Related Skills
-
-- **opsis-systematic-debugging** - If tests reveal complex bugs
-- **opsis-verification-before-completion** - Verify all tests pass before claiming completion
+- Every new function/method has a test
+- Watched each test fail before implementing
+- Wrote minimal code to pass each test
+- All tests pass
+- Output pristine (no errors, no warnings)
 
 ## Success Metrics
 
 When TDD is followed:
+
 - Bug rate: Significantly reduced
 - Regression rate: Near zero
 - Refactoring confidence: High (tests guard against breakage)
 - Code documentation: Tests serve as living documentation
+
+## Common Situations
+
+**Situation:** Don't know how to test
+
+**Pattern:**
+- When: Unsure how to write test
+- Then: Write wished-for API, write assertion first, ask for help
+
+**Situation:** Test too complicated
+
+**Pattern:**
+- When: Design too complicated
+- Then: Simplify interface, extract helper functions
+
+**Situation:** Must mock everything
+
+**Pattern:**
+- When: Code too coupled
+- Then: Use dependency injection, extract interfaces, decouple components
+
+**Situation:** Test setup huge
+
+**Pattern:**
+- When: Setup too complex
+- Then: Extract helper setup functions, simplify design
+
+**Situation:** Bug fix workflow
+
+**Pattern:**
+- When: Fixing bug
+- Then: Write failing test reproducing bug, follow TDD cycle

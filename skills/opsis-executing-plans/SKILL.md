@@ -1,97 +1,159 @@
 ---
 name: opsis-executing-plans
-description: Use when you have a written implementation plan to execute in a separate session with review checkpoints
+description: "Use when you have a written implementation plan to execute in a separate session with review checkpoints"
 ---
 
 # Executing Plans
+
 Load plan, review critically, execute tasks in batches, report for review between batches.
 
-**Core principle:** Batch execution with checkpoints for architect review.
+## When to Use
 
-**Announce at start:** "I'm using the opsis-executing-plans skill to implement this plan."
+Use this skill when:
 
-## The Process
+- You have a written implementation plan (tasks.md)
+- Want to execute in separate session with review checkpoints
+- Need architect review between batches
+- Batch execution with wait-for-feedback
 
-### Step 1: Load and Review Plan
+Do not use when:
 
-Reference **opsis-worktree-utils** for worktree detection to locate tasks.md.
+- No tasks.md exists
+- Want continuous execution without checkpoints
+- Single task execution
 
-1. Read plan file from detected location
-2. Review critically - identify any questions or concerns about the plan
-3. If concerns: Raise them with your human partner before starting
-4. If no concerns: Create TODO list and proceed
+## Rules
 
-### Step 2: Execute Batch
+### Rule: Review plan critically first
 
-**Default: First 3 tasks**
+**When:** Starting plan execution
 
-For each task:
-1. Mark as in progress
-2. Follow each step exactly (plan has bite-sized steps)
-3. Run verifications as specified
-4. Mark as completed
+**Then:** Review plan for questions or concerns
 
-### Step 3: Report
+**If concerns exist:**
+**Then:** Raise them with human partner before starting
 
-When batch complete:
-- Show what was implemented
-- Show verification output
-- Say: "Ready for feedback."
+**If no concerns:**
+**Then:** Create TODO list and proceed
 
-### Step 4: Continue
+### Rule: Execute in batches
 
-Based on feedback:
+**When:** Executing tasks
+
+**Then:** Use default batch size of 3 tasks
+
+**For each task:**
+- Mark as in progress
+- Follow each step exactly
+- Run verifications as specified
+- Mark as completed
+
+### Rule: Report between batches
+
+**When:** Batch completes
+
+**Then:** Report progress and wait for feedback
+
+**Report includes:**
+- What was implemented
+- Verification output
+- "Ready for feedback"
+
+### Rule: Continue based on feedback
+
+**When:** Feedback received
+
+**Then:**
 - Apply changes if needed
 - Execute next batch
 - Repeat until complete
 
-### Step 5: Complete Development
+### Rule: Stop when blocked
 
-After all tasks complete and verified:
-- Announce: "I'm using the opsis-finishing-a-development-branch skill to complete this work."
-- **REQUIRED SUB-SKILL:** Use opsis-finishing-a-development-branch
-- Follow that skill to verify tests, present options, execute choice
+**When:** Hit blocker mid-batch
 
-## When to Stop and Ask for Help
+**Then:** Stop immediately
 
-**STOP executing immediately when:**
-- Hit a blocker mid-batch (missing dependency, test fails, instruction unclear)
-- Plan has critical gaps preventing starting
-- You don't understand an instruction
+**Blocker types:**
+- Missing dependency
+- Test fails
+- Instruction unclear
 - Verification fails repeatedly
 
-**Ask for clarification rather than guessing.**
+**Never:** Guess or force through blockers
 
-## When to Revisit Earlier Steps
+### Rule: Revisit earlier steps when needed
 
-**Return to Review (Step 1) when:**
-- Partner updates the plan based on your feedback
-- Fundamental approach needs rethinking
+**When:** Partner updates plan
 
-**Don't force through blockers** - stop and ask.
+**Then:** Return to review step
 
-## Remember
+**When:** Fundamental approach needs rethinking
 
-- Review plan critically first
-- Follow plan steps exactly
-- Don't skip verifications
-- Reference skills when plan says to
-- Between batches: just report and wait
-- Stop when blocked, don't guess
-- Never start implementation on main/master branch without explicit user consent
+**Then:** Return to review step
 
-## Integration
+**Never:** Force through blockers
 
-**Optional workflow skills:**
-- **opsis-using-git-worktrees** - Optional: Set up isolated workspace before starting (when manual control needed)
-- **opsis-plan** - Creates the plan this skill executes
-- **opsis-finishing-a-development-branch** - Complete development after all tasks
+### Rule: Use finishing skill after completion
 
-## Tool Selection
+**When:** All tasks complete and verified
 
-For the authoritative rule on subagent vs subtask usage, see **using-opsis**:
-- **Rule of Thumb:** Use subagents for research and decisions. Use subtasks for executing work.
+**Then:** Use opsis-finishing-a-development-branch
 
-**This skill uses:**
-- `tasks---create_task` for creating subtasks that execute implementation work
-- Direct execution in current session for simple sequential tasks
+**Never:** Start implementation on main/master branch without explicit user consent
+
+## Process
+
+1. Load and review plan
+2. Execute first batch (default 3 tasks)
+3. Report completion and verification output
+4. Wait for feedback
+5. Apply changes if needed
+6. Execute next batch
+7. Repeat until all tasks complete
+8. Use opsis-finishing-a-development-branch
+
+## Preconditions
+
+Before using this skill, verify:
+
+- tasks.md exists
+- Plan has been reviewed
+- User wants separate session execution
+
+## Postconditions
+
+After completing this skill, verify:
+
+- All tasks from plan executed
+- Verification evidence provided
+- opsis-finishing-a-development-branch invoked
+
+## Success Metrics
+
+This skill is successful when:
+
+- All tasks executed in batches
+- Review checkpoints completed between batches
+- Feedback applied before proceeding
+- Verification evidence provided for each batch
+
+## Common Situations
+
+**Situation:** Blocker encountered mid-batch
+
+**Pattern:**
+- When: Dependency missing, test fails, or instruction unclear
+- Then: Stop immediately, ask for clarification
+
+**Situation:** Partner updates plan
+
+**Pattern:**
+- When: Plan changes during execution
+- Then: Return to review step, re-evaluate approach
+
+**Situation:** All tasks complete
+
+**Pattern:**
+- When: Final batch completes
+- Then: Use opsis-finishing-a-development-branch

@@ -1,6 +1,6 @@
 ---
 name: opsis-prd
-description: Requirements discovery through strategic questioning. Ask one question at a time, validate answers, generate full PRD and quick PRD in .aider-desk/opsis/outputs/{prd-name}/
+description: "Requirements discovery through strategic questioning. Ask one question at a time, validate answers, generate full PRD and quick PRD in .aider-desk/opsis/outputs/{prd-name}/"
 license: Apache-2.0
 ---
 
@@ -10,190 +10,79 @@ Requirements discovery through strategic questioning to create comprehensive PRD
 
 ## When to Use
 
-**Invoke opsis-prd when:**
+Use this skill when:
+
 - Starting a new feature or project that needs clear requirements
 - Requirements are vague and need refinement through dialogue
 - A comprehensive Product Requirements Document is needed
 - Planning phase of development workflow
 
-**Note:** This is a Planning Mode skill. It does not generate implementation code.
+Do not use when:
 
-## Mode Declaration
+- Requirements are already clear and documented
+- User wants to start implementation immediately
 
-Reference **opsis-mode-enforcer** for complete mode declaration format and enforcement.
+## Rules
 
-**OPSIS MODE: Planning**
-Mode: planning
-Purpose: Guiding strategic questions to create comprehensive PRD documents
-Implementation: BLOCKED - I will develop requirements, not implement the feature
+### Rule: Ask strategic questions one at a time
 
-## Activation Logging
+**When:** Gathering requirements
 
-When this skill is activated, log:
+**Then:** Ask one question, validate answer, then proceed
 
-```
-ACTIVATED: opsis-prd
-Purpose: Creating Product Requirements Document for [feature/project]
-Expected outputs: full-prd.md, quick-prd.md
-```
+**Strategic questions:**
 
-## Preconditions
+**Q1: What are we building and why?**
+- **Validation requirements:** Must have both problem AND goal, 2-3 sentences minimum
+- **If vague, probe for:** Specific pain points, target users, decisions supported
 
-Before invoking this skill:
-1. A feature or project idea has been identified (even if vague)
-2. Requirements gathering is needed before implementation
-3. No complete PRD exists for this feature/project
-4. Planning Mode is appropriate (not implementation or verification)
+**Q2: Must-have core features?**
+- **Validation requirements:** At least 2 concrete features, 3-5 critical features recommended
+- **If vague, ask:** What will users do first? What provides core value?
+- **If too many, help prioritize:** Launch blockers vs nice-to-have
 
-## Postconditions
+**Q3: Tech stack and requirements?**
+- **Validation requirements:** Technologies, integrations, constraints
+- **Optional if:** Extending existing project
+- **If existing project, ask about:** Existing integrations, performance requirements, team preferences
 
-After completing this skill:
-1. A full PRD document is saved to `{SAVE_BASE}/{prd-name}/full-prd.md`
-2. A quick PRD document is saved to `{SAVE_BASE}/{prd-name}/quick-prd.md`
-3. Actual file paths are displayed to the user
-4. User is directed to next steps (opsis-plan)
+**Q4: Architecture and design choices?**
+- **Validation requirements:** Optional question
+- **Topics:** Folder structure preferences, design patterns, architectural style, data modeling
 
-## Success Metrics
+**Q5: Explicitly OUT of scope?**
+- **Validation requirements:** At least 1 explicit exclusion
+- **Prevents:** Scope creep
+- **Clarifies:** Boundaries
+- **If none, suggest:** "What won't we build in this phase to keep scope manageable?"
 
-This skill is successful when:
-- All strategic questions (Q1-Q6) are asked and answered
-- Validation gates pass (problem+goal stated, 2+ features, 1+ scope exclusion)
-- Both full-prd.md and quick-prd.md are created and verified
-- Documents follow the standard output structure
-- User confirms satisfaction with the PRD
+**Q6: Additional context?**
+- **Validation requirements:** Optional question
+- **Topics:** Compliance, accessibility, deadlines, team constraints
 
-## Pre-Flight: Delegation Assessment
+### Rule: Validate before document generation
 
-Reference **opsis-coordinator** for complete delegation decision framework.
+**When:** All questions answered
 
-**Before starting requirements gathering, assess delegation requirements:**
+**Then:** Verify all validation gates pass
 
-**DELEGATE to appropriate subagent if:**
-- Analyzing existing codebase for requirements discovery
-- Scanning project structure to understand context
-- Reading multiple files to gather technical details
-- Identifying patterns or architecture before PRD creation
-- Complex file pattern matching for context gathering
-
-**EXECUTE DIRECTLY if:**
-- Pure conversational requirements gathering (no codebase access)
-- User provides all technical context upfront
-- Simple, well-defined feature with clear requirements
-- New project with no existing codebase to analyze
-
-**If delegation is required:**
-1. Log: "Using subagent for codebase analysis and requirements discovery"
-2. Invoke `subagents---run_task` with clear task description and context
-3. Review analysis results
-4. Incorporate technical context into strategic questions
-5. Continue with Strategic Questions step
-
-## Strategic Questions (One at a Time)
-
-Ask these questions one at a time, validating each answer before proceeding.
-
-### Q1: What are we building and why?
-
-**Ask:** "What are we building and why?"
-
-**Validation Requirements:**
-- Must have both problem AND goal
-- 2-3 sentences minimum
-
-**If vague, probe for:**
-- Specific pain points
-- Target users
-- Decisions supported by this feature
-
-**Example good answer:**
-- "Users can't reset their passwords without contacting support (problem). We need a self-service password reset flow to reduce support tickets (goal)."
-
-### Q2: Must-have core features?
-
-**Ask:** "What are the must-have core features?"
-
-**Validation Requirements:**
-- At least 2 concrete features
-- 3-5 critical features recommended
-
-**If vague, ask:**
-- What will users do first?
-- What provides core value?
-
-**If too many, help prioritize:**
-- Launch blockers vs nice-to-have
-- MVP features vs future enhancements
-
-### Q3: Tech stack and requirements?
-
-**Ask:** "What tech stack and requirements do we have?"
-
-**Validation Requirements:**
-- Technologies, integrations, constraints
-- Optional if extending existing project
-
-**If existing project, ask about:**
-- Existing integrations
-- Performance requirements
-- Team preferences
-- Architectural constraints
-
-### Q4: Architecture and design choices?
-
-**Ask:** "Are there specific architecture or design choices?"
-
-**Validation Requirements:**
-- Optional question
-
-**Topics to explore:**
-- Folder structure preferences
-- Design patterns
-- Architectural style (monolith vs microservices)
-- Data modeling preferences
-
-### Q5: Explicitly OUT of scope?
-
-**Ask:** "What is explicitly OUT of scope?"
-
-**Validation Requirements:**
-- At least 1 explicit exclusion
-- Prevents scope creep
-- Clarifies boundaries
-
-**If none, suggest:**
-- "What won't we build in this phase to keep scope manageable?"
-
-### Q6: Additional context?
-
-**Ask:** "Is there any additional context I should know?"
-
-**Validation Requirements:**
-- Optional question
-
-**Topics to explore:**
-- Compliance requirements
-- Accessibility needs
-- Localization requirements
-- Deadlines or time constraints
-- Team size or skill constraints
-- Budget constraints
-
-## Validation Gates
-
-Before document generation, verify all gates pass:
-
-**Gate 1 (Q1):** Both problem AND goal stated
-**Gate 2 (Q2):** At least 2 concrete features
-**Gate 3 (Q5):** At least 1 explicit scope exclusion
+**Validation gates:**
+- Gate 1 (Q1): Both problem AND goal stated
+- Gate 2 (Q2): At least 2 concrete features
+- Gate 3 (Q5): At least 1 explicit scope exclusion
 
 **If any gate fails:**
-- Return to the relevant question
-- Guide user to provide missing information
-- Re-validate before proceeding
+**Then:** Return to relevant question, guide user to provide missing information
 
-## File-Saving Protocol
+### Rule: Save files to correct location
 
-Reference **opsis-worktree-utils** for worktree detection and save location logic.
+**When:** Generating PRD documents
+
+**Then:** Use opsis-worktree-utils for save location
+
+**Save preference:**
+- If in worktree and it has `.aider-desk`: use worktree's `.aider-desk/opsis/outputs`
+- Otherwise: use project root's `.aider-desk/opsis/outputs`
 
 **Save files:**
 1. Determine project name (sanitize: lowercase, spaces→hyphens)
@@ -203,27 +92,13 @@ Reference **opsis-worktree-utils** for worktree detection and save location logi
 5. Verify both files with Read tool
 6. Display actual file paths
 
-**Detection logic (from opsis-worktree-utils):**
-```bash
-# Worktree detection
-WORKTREE_PATH=""; PROJECT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || echo "$PWD")
-[[ "$PWD" == */.aider-desk/task/*/worktree/* ]] && {
-    WORKTREE_PATH="$PWD"
-    PROJECT_ROOT=$(echo "$PWD" | sed 's|/\.aider-desk/task/.*||')
-}
+### Rule: Use standard output structure
 
-# Save location preference
-if [ -n "$WORKTREE_PATH" ] && [ -d "$WORKTREE_PATH/.aider-desk" ]; then
-    SAVE_BASE="$WORKTREE_PATH/.aider-desk/opsis/outputs"
-else
-    SAVE_BASE="$PROJECT_ROOT/.aider-desk/opsis/outputs"
-fi
-```
+**When:** Generating PRD documents
 
-## Output Structure
+**Then:** Follow standard format
 
-### Full PRD Format
-
+**Full PRD format:**
 ```markdown
 # Product Requirements Document: {Project Name}
 
@@ -248,37 +123,72 @@ fi
 {Q6 answer if provided - compliance, accessibility, deadlines, team constraints}
 ```
 
-### Quick PRD Format
+**Quick PRD format:**
+2-3 paragraphs, AI-optimized summary of the full PRD
 
-2-3 paragraphs, AI-optimized summary of the full PRD for quick reference.
+## Process
 
-## Integration
+1. Ask Q1: What are we building and why?
+2. Validate Q1 answer (problem + goal, 2-3 sentences)
+3. Ask Q2: Must-have core features?
+4. Validate Q2 answer (2+ concrete features)
+5. Ask Q3: Tech stack and requirements? (optional if existing project)
+6. Ask Q4: Architecture and design choices? (optional)
+7. Ask Q5: Explicitly out of scope?
+8. Validate Q5 answer (1+ explicit exclusion)
+9. Ask Q6: Additional context? (optional)
+10. Validate all gates pass
+11. Generate full PRD with standard structure
+12. Generate quick PRD (2-3 paragraphs)
+13. Save files to correct location
+14. Verify files exist
+15. Display actual file paths
+16. Direct user to opsis-plan
 
-This skill is part of the Opsis planning workflow:
+## Preconditions
 
-**Workflow Order:**
-1. **opsis-start** - Conversational exploration for vague ideas (optional)
-2. **opsis-prd** - Requirements discovery through strategic questioning (this skill)
-3. **opsis-plan** - Task breakdown from PRD
-4. **opsis-implement** - Execute tasks from implementation plan
-5. **opsis-verify** - Verify implementation against PRD
+Before using this skill, verify:
 
-**Related Skills:**
-- **opsis-coordinator** - Delegation decision framework (pre-flight assessment)
-- **opsis-mode-enforcer** - Mode declaration and enforcement
-- **opsis-worktree-utils** - Worktree detection and file protocol
-- **opsis-summarize** - Conversation analysis and mini-PRD extraction
-- **opsis-refine** - PRD iteration and updates
+- A feature or project idea has been identified (even if vague)
+- Requirements gathering is needed before implementation
+- No complete PRD exists for this feature/project
+- Planning Mode is appropriate
 
-**References:**
-- **using-opsis** - Complete workflow rules, Iron Laws, and skill invocation order (always load first)
+## Postconditions
 
-## Next Steps
+After completing this skill, verify:
 
-After PRD generation, use **opsis-plan** to generate task breakdown from the PRD:
+- Full PRD document saved to `{SAVE_BASE}/{prd-name}/full-prd.md`
+- Quick PRD document saved to `{SAVE_BASE}/{prd-name}/quick-prd.md`
+- Actual file paths displayed to user
+- User directed to next steps (opsis-plan)
 
-```
-Use opsis-plan to create a detailed task breakdown from this PRD.
-```
+## Success Metrics
 
-The opsis-plan skill will analyze the codebase, map requirements to specific files, and generate tasks.md with technical implementation details.
+This skill is successful when:
+
+- All strategic questions (Q1-Q6) asked and answered
+- Validation gates pass (problem+goal stated, 2+ features, 1+ scope exclusion)
+- Both full-prd.md and quick-prd.md created and verified
+- Documents follow standard output structure
+- User confirms satisfaction with PRD
+
+## Common Situations
+
+**Situation:** User provides vague problem statement
+
+**Pattern:**
+- When: Problem statement unclear
+- Then: Probe for specific pain points, target users, decisions supported
+
+**Situation:** User lists too many features
+
+**Pattern:**
+- When: >5 features listed
+- Then: Help prioritize (launch blockers vs nice-to-have)
+
+**Situation:** User has no scope exclusions
+
+**Pattern:**
+- When: No exclusions provided
+- Then: Suggest: "What won't we build in this phase to keep scope manageable?"
